@@ -89,7 +89,7 @@ class SellerLoginView(APIView):
                         'id' : user_data_fetch.id,
                         'username' : user_data_fetch.username,
                     }
-                return Response({'data' : response_data, 'error' : False, 'msg' : 'Seller Logged In Successfully'},status.HTTP_400_BAD_REQUEST) 
+                return Response({'data' : response_data, 'error' : False, 'msg' : 'Seller Logged In Successfully'},status.HTTP_201_CREATED) 
                 
 
 class AdminSignupView(APIView):
@@ -134,7 +134,7 @@ class AdminLoginView(APIView):
                         'id' : user_data_fetch.id,
                         'username' : user_data_fetch.username,
                     }
-                return Response({'data' : response_data, 'error' : False, 'msg' : 'Admin Logged In Successfully'},status.HTTP_400_BAD_REQUEST) 
+                return Response({'data' : response_data, 'error' : False, 'msg' : 'Admin Logged In Successfully'},status.HTTP_201_CREATED) 
 
 class TotalUsersView(APIView):
     def get(self, request):
