@@ -10,6 +10,6 @@ urlpatterns = [
     path('admin_login/', AdminLoginView.as_view(), name='Admin Login'),
     path('admin_signup/', AdminSignupView.as_view(), name='Admin Signup'),
     path('all_users/', TotalUsersView.as_view(), name='Total_users'),
-    path('admin/<int:id>', AdminDetailsView.as_view(), name='AdminDetails'),
+    path('admin/<int:id>/', AdminDetailsView.as_view(), name='AdminDetails'),
 
 ]

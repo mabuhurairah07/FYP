@@ -6,6 +6,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
         fields = '__all__'
+
+class AdminDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDetails
+        fields = ['id','username', 'email', 'phone_no']
         
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

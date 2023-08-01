@@ -7,8 +7,7 @@ from .models import UserDetails
 from django.utils import timezone
 # Create your views here.
 
-from .serializers import SignupSerializer,LoginSerializer,UserSerializer,SellerLoginSerializer,SellerSignupSerializer,AdminLoginSerializer,AdminSignupSerializer
-
+from .serializers import *
 class SignupView(APIView):
 
     def post(self, request):
@@ -138,9 +137,9 @@ class AdminLoginView(APIView):
             
 class AdminDetailsView(APIView):
     def get(self, request, id):
-        admin = UserDetails.objects.get(id=id)
+        admin = UserDetails.objects.filter(id=id, is_admin=True)
         if admin is not None:
-            serializer = UserSerializer(admin)
+            serializer = AdminDetailsSerializer(admin)
             return Response({
                 'data' : serializer.data,
                 'error' : False
@@ -149,6 +148,25 @@ class AdminDetailsView(APIView):
             'data' : serializer.errors,
             'error' : True
         })
+    def post(self,request, id):
+        admin = UserDetails.objects.filter(id=id, is_admin=True)
+        if admin is not None:
+            name = request.data['username']
+            phone_no = request.data['phone_no']
+            email = request.data['email']
+            update = UserDetails.objects.update(username=name, phone_no=phone_no, email=email)
+            update.save()
+            serializer = AdminDetailsSerializer(admin)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })
+
+
 
 class TotalUsersView(APIView):
     def get(self, request):
