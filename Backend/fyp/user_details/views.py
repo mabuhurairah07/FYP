@@ -135,6 +135,20 @@ class AdminLoginView(APIView):
                         'username' : user_data_fetch.username,
                     }
                 return Response({'data' : response_data, 'error' : False, 'msg' : 'Admin Logged In Successfully'},status.HTTP_201_CREATED) 
+            
+class AdminDetailsView(APIView):
+    def get(self, request, id):
+        admin = UserDetails.objects.get(id=id)
+        if admin is not None:
+            serializer = UserSerializer(admin)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })
 
 class TotalUsersView(APIView):
     def get(self, request):
