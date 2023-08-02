@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ShipmentSerializer,OrderDetailsSerializer,OrderSerializer
+from .serializers import *
 from .models import Order,OrderDetails,ShipmentDetails
 from user_details.models import UserDetails
 from product_details.models import Variation
@@ -14,21 +14,28 @@ import stripe
 
 class ShipmentView(APIView):
     def post(self, request):
-        serializer = ShipmentSerializer(data=request.data)
+        data = request.data
+        print(data)
+        serializer = AddShipmentSerializer(data=data)
         if serializer.is_valid():
             address = request.data['address']
             city = request.data['city']
             state = request.data['state']
             zip = request.data['zip']
             user_id = request.data['user_id']
+            firstname = request.data['first_name']
+            lastname = request.data['last_name']
             user = UserDetails.objects.get(id=user_id)
             shipment = ShipmentDetails.objects.create(
                 address = address,
                 city = city,
                 state = state,
                 zip = zip,
-                user_id = user
+                user_id = user,
+                last_name=lastname,
+                first_name=firstname
             )
+            shipment.save()
             return Response({'data' : serializer.data, 'error' : False, 'msg' : "Success"}, status.HTTP_202_ACCEPTED)
         return Response({ 'error' : True, 'msg' : "Shipment Address cannot be added"}, status.HTTP_204_NO_CONTENT)
     def get(self, request):
@@ -40,7 +47,7 @@ class ShipmentView(APIView):
     
 class ShowShipmentView(APIView):
     def get(self, request, id):
-        user = UserDetails.objects.filter(id=id)
+        user = UserDetails.objects.get(id=id)
         if user is not None:
             shipment = ShipmentDetails.objects.filter(user_id = user)
             if shipment is not None:
