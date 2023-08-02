@@ -139,7 +139,7 @@ class AdminDetailsView(APIView):
     def get(self, request, id):
         admin = UserDetails.objects.filter(id=id, is_admin=True)
         if admin is not None:
-            serializer = AdminDetailsSerializer(admin)
+            serializer = AdminDetailsSerializer(admin, many=True)
             return Response({
                 'data' : serializer.data,
                 'error' : False
@@ -148,14 +148,20 @@ class AdminDetailsView(APIView):
             'data' : serializer.errors,
             'error' : True
         })
+    
     def post(self,request, id):
-        admin = UserDetails.objects.filter(id=id, is_admin=True)
+        admin = UserDetails.objects.get(id=id, is_admin=True)
+        created_at = admin.created_at
         if admin is not None:
             name = request.data['username']
             phone_no = request.data['phone_no']
             email = request.data['email']
-            update = UserDetails.objects.update(username=name, phone_no=phone_no, email=email)
-            update.save()
+            admin.username = name
+            admin.phone_no = phone_no
+            admin.email = email
+            admin.updated_at = timezone.now()
+            admin.created_at = created_at
+            admin.save()
             serializer = AdminDetailsSerializer(admin)
             return Response({
                 'data' : serializer.data,

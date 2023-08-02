@@ -11,5 +11,4 @@ urlpatterns = [
     path('admin_signup/', AdminSignupView.as_view(), name='Admin Signup'),
     path('all_users/', TotalUsersView.as_view(), name='Total_users'),
     path('admin/<int:id>/', AdminDetailsView.as_view(), name='AdminDetails'),
-
 ]
