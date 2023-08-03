@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,7 +6,7 @@ from rest_framework import status
 from .serializers import *
 from .models import *
 from user_details.models import UserDetails
-from product_details.models import Variation
+from product_details.models import *
 from transaction_details.models import Transaction
 from cart_details.models import Cart
 import stripe
@@ -55,22 +55,90 @@ class ShowShipmentView(APIView):
                 return Response({'data' : serializer.data, 'error' : False}, status.HTTP_202_ACCEPTED)
         return Response({'msg' : 'No data to show', 'error' : True}, status.HTTP_204_NO_CONTENT)
 
-# class OrderView(APIView):
-#     def post(self, request):
-#         user_id = request.data['user_id']
-#         user = UserDetails.objects.get(id=user_id)
-#         cart = Cart.objects.filter(user_data=user)
-#         total = 0
-#         discount = 0
-#         if cart.exists():
-#             for items in cart:
-#                 product_price = items.product.disc_price
-#                 quantity = int(items.quantity)
-#                 total += product_price * quantity
-#                 discount += items.product.p_price - product_price
-#         shipping = (total / 100) * 10
+class OrderView(APIView):
+    def post(self, request):
+        serializer = AddOrderSerializer(data=request.data)
+        if serializer.is_valid():
+            user_id = request.data['user_id']
+            user_data  = get_object_or_404(UserDetails, id=user_id)
+            cart = Cart.objects.filter(user_data=user_data)
+            print(cart)
+            total = 0
+            discount = 0
+            if cart.exists():
+                for product in cart:
+                    price = product.product.disc_price
+                    quantity = int(product.quantity)
+                    total  +=  (price * quantity)
+                    discount += product.product.p_price - price
+                order = Order.objects.create(user_id=user_data, total_bill=total , discount=discount, bill_payed = '0', payment_type='None',created_at = timezone.now(), updated_at = timezone.now())
+                order.save()
+                cart.delete()
+                orderSerializer = ViewOrderSerializer(order)
+                return Response({
+                    'data' : orderSerializer.data,
+                    'error' : False,
+                    'msg' : 'Order Created SuccessFully'
+                }, status.HTTP_202_ACCEPTED)
+            return Response({
+                'error' : True,
+                'msg' : 'Cannot Create Order, Your cart is empty'
+            }, status.HTTP_204_NO_CONTENT)
+    def get(self, request):
+        order = Order.objects.all()
+        if order is not None:
+            serializer = OrderSerializer(order, many=True)
+            return Response({
+                'data' : serializer.data,
+                'error'  : False,
+            })
+        return Response({
+            'error' : True,
+            'msg' : 'There is an error Fetching data'
+        })
+        
+class UpdateOrderView(APIView):
+    def post(self, request):
+        serializer = UpdateOrderSerializer(data=request.data)
+        if serializer.is_valid():
+            order_id = request.data['order_id']
+            payment = request.data['payment_type']
+            payed = request.data['bill_payed']
+            order = Order.objects.get(o_id=order_id)
+            if order:
+                order.payment_type = payment
+                order.bill_payed = payed
+                order.save()
+            return Response({
+                'data' : serializer.data,
+                'error' : False,
+                'msg' : 'Order Updated SuccessFully'
+            }, status.HTTP_202_ACCEPTED)
+        return Response({
+            'error' : True,
+            'msg' : 'Cannot Create Order, Your Order is not Found'
+        }, status.HTTP_204_NO_CONTENT)  
 
-#         payment_type = request.data['payment_type']
-#         total_bill = total + shipping
-#         bill_payed = ''
+
+
+
+
+            
+
+        # user_id = request.data['user_id']
+        # user = UserDetails.objects.get(id=user_id)
+        # cart = Cart.objects.filter(user_data=user)
+        # total = 0
+        # discount = 0
+        # if cart.exists():
+        #     for items in cart:
+        #         product_price = items.product.disc_price
+        #         quantity = int(items.quantity)
+        #         total += product_price * quantity
+        #         discount += items.product.p_price - product_price
+        # shipping = (total / 100) * 10
+
+        # payment_type = request.data['payment_type']
+        # total_bill = total + shipping
+        # bill_payed = ''
             

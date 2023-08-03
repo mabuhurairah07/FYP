@@ -16,3 +16,16 @@ class AddShipmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShipmentDetails
         fields = "__all__"
+
+class AddOrderSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+
+class UpdateOrderSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+    payment_type = serializers.CharField()
+    bill_payed = serializers.CharField()
+
+class ViewOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['payment_type', 'total_bill', 'bill_payed', 'discount']
