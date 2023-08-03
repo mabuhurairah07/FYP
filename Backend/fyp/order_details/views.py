@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
-from .models import Order,OrderDetails,ShipmentDetails
+from .models import *
 from user_details.models import UserDetails
 from product_details.models import Variation
 from transaction_details.models import Transaction

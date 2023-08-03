@@ -2,11 +2,18 @@ from rest_framework import serializers
 from .models import Product,Category,SubCategory,Wishlist,Variation,CompareProducts,MobilePhones,Laptops,LCD,AC
 from user_details.models import UserDetails
 
-class AddProductSerializer(serializers.ModelSerializer):
-    p_image = serializers.ImageField(required=True)
-    class Meta:
-        model = Product
-        fields = ['p_name', 'p_image', 'p_brand', 'p_status', 'p_des', 'p_price', 'disc_price', 'discount', 'category', 'sub_category', 'user_data']
+# class AddProductSerializer(serializers.Serializer):
+#     p_image = serializers.ImageField(required=True)
+#     p_brand = serializers.CharField(max_length=250)
+#     p_status = serializers.SmallIntegerField()
+#     p_des = serializers.TextField(max_length=5000)
+#     p_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+#     disc_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+#     discount = serializers.SmallIntegerField()
+#     category = serializers.CharField(max_length=250)
+#     sub_category = serializers.CharField(max_length=250)
+#     user_data = serializers.CharField(max_length=250)
+
 
 
 class CategorySerializer(serializers.ModelSerializer):
