@@ -19,7 +19,7 @@ class AddProductView(APIView):
             category = Category.objects.get(cat_name = category_name)
             sub_cat_name = request.data['sub_category']
             sub_cat = SubCategory.objects.get(sub_name = sub_cat_name)
-            user = UserDetails.objects.get(id = request.data['user_data'])
+            user = UserDetails.objects.get(id = request.data['user_data'], is_seller=True)
             product = Product.objects.create(
                     p_name = request.data['p_name'],
                     p_image = request.data['p_image'],
