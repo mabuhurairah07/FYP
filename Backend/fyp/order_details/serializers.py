@@ -23,7 +23,6 @@ class AddOrderSerializer(serializers.Serializer):
 class UpdateOrderSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
     payment_type = serializers.CharField()
-    bill_payed = serializers.CharField()
 
 class ViewOrderSerializer(serializers.ModelSerializer):
     class Meta:

@@ -155,8 +155,6 @@ class ProductDetailsView(APIView):
         })
             
 
-
-
 class WishlistView(APIView):
 
 
@@ -182,6 +180,25 @@ class WishlistView(APIView):
         wishlist = Wishlist.objects.filter(user_data = id)
         if wishlist is not None:
             serializer = ShowWishlistSerializer(wishlist, many=True)
+            for products in wishlist:
+                p = products.product
+                print(p.category.cat_name)
+                if p.category.cat_name == 'Phones':
+                    phone = MobilePhones.objects.get(product=p)
+                    phone_serializer = MobileSerializer(phone)
+                    print(phone_serializer.data)
+                elif p.category.cat_name == 'LCD':
+                    lcd = LCD.objects.get(product=p)
+                    lcd_serializer = LCDSerializer(lcd)
+                    print(lcd_serializer.data)
+                elif p.category.cat_name == 'Laptops':
+                    laptops = Laptops.objects.get(product=p)
+                    laptop_serializer = LaptopSerializer(laptops)
+                    print(laptop_serializer.data)
+                elif p.category.cat_name == 'AC':
+                    ac = AC.objects.get(product=p)
+                    ac_serializer = ACSerializer(ac)
+                    print(ac_serializer.data)
             return Response({
                 'data' : serializer.data,
                 'error' : False
