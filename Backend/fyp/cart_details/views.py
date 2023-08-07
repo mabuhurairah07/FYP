@@ -17,6 +17,8 @@ class AddToCartView(APIView):
             quantity = request.data['quantity']
             created_at = timezone.now()
             updated_at = timezone.now()
+            if not UserDetails.objects.get(id = user_id):
+                return Response({'error' : True, 'data' : serializer.data, 'msg' : 'Login to Your Account'}, status.HTTP_204_NO_CONTENT)
             existing_cart_items = Cart.objects.filter(user_data=user_id, product=p_id)
             if existing_cart_items.exists():
                 return Response({'message': 'Product already in cart.', 'error' : True}, status=status.HTTP_400_BAD_REQUEST)
@@ -36,8 +38,9 @@ class AddToCartView(APIView):
     
 class CartView(APIView):
 
-    def get(self, request):
-        cart_instance = Cart.objects.all()
+    def get(self, request, id):
+        user = UserDetails.objects.get(id=id)
+        cart_instance = Cart.objects.filter(user_data=user)
         if cart_instance is not None:
             serializer = CartSerializer(cart_instance, many=True)
             return Response({'data' : serializer.data, 'error' : False}, status.HTTP_202_ACCEPTED)
