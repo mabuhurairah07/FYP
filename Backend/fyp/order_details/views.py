@@ -155,5 +155,27 @@ class UpdateOrderView(APIView):
         return Response({
             'error' : True,
             'msg' : 'Cannot Create Order, Your Order is not Found'
-        }, status.HTTP_204_NO_CONTENT)  
+        }, status.HTTP_204_NO_CONTENT) 
+
+
+class UpdateStatusView(APIView):
+
+    def post(self, request):
+        serializer = UpdateStatusSerializer(data=request.data)
+        print(request.data)
+        if serializer.is_valid():
+            order_id = request.data['o_id']
+            status = request.data['o_status']
+            order = Order.objects.get(o_id=order_id)
+            order.o_status = status
+            order.save()
+            return Response({
+                'data' : serializer.data,
+                'error' : False,
+                'msg' : 'Order Status Updated SuccessFully'
+            })
+        return Response({
+            'error' : True,
+            'msg' : 'Cannot Update Order, Your Order is not Found'
+        }, status.HTTP_204_NO_CONTENT) 
 

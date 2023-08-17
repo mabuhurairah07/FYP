@@ -28,3 +28,8 @@ class ViewOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['payment_type', 'total_bill', 'bill_payed', 'discount']
+
+class UpdateStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['o_id', 'o_status']

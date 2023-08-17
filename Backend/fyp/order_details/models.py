@@ -10,7 +10,7 @@ class Order(models.Model):
     user_id = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)
-
+    o_status = models.CharField(default='In Process', max_length=200)
 # class OrderDetails(models.Model):
 #     od_id = models.AutoField(primary_key=True)
 #     actual_price = models.CharField(max_length=200)
