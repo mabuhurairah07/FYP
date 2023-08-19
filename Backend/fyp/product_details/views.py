@@ -8,13 +8,20 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import *
 from .models import *
 from user_details.models import UserDetails
+import pandas as pd
+import os
+
+
+
 class AddProductView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     
     def post(self, request):
+        print(request.data)
         serializer = AddProductSerializer(data=request.data)
         image = request.data['p_image']
         if serializer.is_valid():
+            print('into for Loop')
             category_name = request.data['category']
             category = Category.objects.get(cat_name = category_name)
             sub_cat_name = request.data['sub_category']
@@ -41,11 +48,11 @@ class AddProductView(APIView):
                     category = category,
                     sub_category = sub_cat,
                     product = product,
-                    processor = request.data['processor'],
-                    battery = request.data['battery'],
-                    memory = request.data['memory'],
-                    display = request.data['display'],
-                    camera = request.data['camera']
+                    mobile_processor = request.data['processor'],
+                    mobile_battery = request.data['battery'],
+                    mobile_memory = request.data['memory'],
+                    mobile_display = request.data['display'],
+                    mobile_camera = request.data['camera']
                 )
                 mobile.save()
             elif category_name == 'Laptops':
@@ -53,11 +60,11 @@ class AddProductView(APIView):
                     category = category,
                     sub_category = sub_cat,
                     product = product,
-                    processor = request.data['processor'],
-                    battery = request.data['battery'],
-                    memory = request.data['memory'],
-                    display = request.data['display'],
-                    generation = request.data['generation']
+                    laptop_processor = request.data['processor'],
+                    laptop_battery = request.data['battery'],
+                    laptop_memory = request.data['memory'],
+                    laptop_display = request.data['display'],
+                    laptop_generation = request.data['generation']
                 )
                 laptops.save()
             elif category_name == 'LCD':
@@ -65,10 +72,10 @@ class AddProductView(APIView):
                     category = category,
                     sub_category = sub_cat,
                     product = product,
-                    display = request.data['display'],
-                    power_consumption = request.data['power_consumption'],
-                    audio = request.data['audio'],
-                    chip = request.data['chip']
+                    lcd_display = request.data['display'],
+                    lcd_power_consumption = request.data['power_consumption'],
+                    lcd_audio = request.data['audio'],
+                    lcd_chip = request.data['chip']
                 )
                 lcd.save()
             elif category_name == 'AC':
@@ -76,16 +83,15 @@ class AddProductView(APIView):
                     category = category,
                     sub_category = sub_cat,
                     product = product,
-                    capacity = request.data['capacity'],
-                    type = request.data['type'],
-                    inverter = request.data['inverter'],
-                    warranty = request.data['warranty'],
-                    energy_efficiency = request.data['energy_efficiency']
+                    ac_capacity = request.data['capacity'],
+                    ac_type = request.data['type'],
+                    ac_inverter = request.data['inverter'],
+                    ac_warranty = request.data['warranty'],
+                    ac_energy_efficiency = request.data['energy_efficiency']
                 )
                 ac.save()
             variation = Variation.objects.create(
                 product = product,
-                size = request.data['size'],
                 color = request.data['color'],
                 quantity = request.data['quantity']
             )
