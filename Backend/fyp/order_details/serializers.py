@@ -12,13 +12,23 @@ class ShipmentSerializer(serializers.ModelSerializer):
         model = ShipmentDetails
         fields = "__all__"
         
-class AddShipmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ShipmentDetails
-        fields = "__all__"
+class AddShipmentSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    city = serializers.CharField()
+    state = serializers.CharField()
+    zip = serializers.CharField()
+    address = serializers.CharField()
+    firstname = serializers.CharField()
+    lastname = serializers.CharField()
 
 class AddOrderSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
+    card_number = serializers.IntegerField()
+    exp_month = serializers.IntegerField()
+    exp_year = serializers.IntegerField()
+    cvc = serializers.IntegerField()
+    payment_type = serializers.CharField()
+
 
 class UpdateOrderSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
