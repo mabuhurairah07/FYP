@@ -22,7 +22,7 @@ class Product(models.Model):
     disc_price = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.SmallIntegerField()
     category = models.ForeignKey("product_details.Category", on_delete=models.CASCADE)
-    sub_category = models.ForeignKey("product_details.SubCategory", on_delete=models.CASCADE)
+    sub_category = models.CharField(max_length=250, default='No Category')
     user_data = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)

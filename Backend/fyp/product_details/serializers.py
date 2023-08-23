@@ -3,7 +3,7 @@ from .models import Product,Category,SubCategory,Wishlist,Variation,CompareProdu
 from user_details.models import UserDetails
 
 class AddProductSerializer(serializers.Serializer):
-    p_image = serializers.ImageField(required=True)
+    p_image = serializers.ImageField()
     p_brand = serializers.CharField(max_length=250)
     p_status = serializers.IntegerField()
     p_des = serializers.CharField(max_length=5000)
@@ -36,9 +36,8 @@ class AddProductSerializer(serializers.Serializer):
             lcd_power_consumption = serializers.CharField(max_length=500)
             lcd_audio = serializers.CharField(max_length=500)
             lcd_chip = serializers.CharField(max_length=500)
-    size = serializers.CharField(max_length=250)
     color = serializers.CharField(max_length=250)
-    quantity = serializers.IntegerField()   
+    quantity = serializers.IntegerField()
 
 
 class CategorySerializer(serializers.ModelSerializer):

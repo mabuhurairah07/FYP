@@ -129,6 +129,7 @@ class OrderView(APIView):
                 total_bill = total + shipping
                 if payment == 'Stripe':
                     try:
+                        payment_method = 'tok_visa'
                         payment_method = stripe.PaymentMethod.create(
                             type="card",
                             card={
@@ -153,8 +154,7 @@ class OrderView(APIView):
                         payment_intent = stripe.PaymentIntent.create(
                             amount=int(total_bill),
                             currency="usd",
-                            payment_method_types=["card"],
-                            payment_method=payment_method,
+                            payment_method='pm_card_visa',
                             confirm=True,
                         )
                         

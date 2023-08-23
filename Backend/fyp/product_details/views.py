@@ -25,7 +25,7 @@ class AddProductView(APIView):
             category_name = request.data['category']
             category = Category.objects.get(cat_name = category_name)
             sub_cat_name = request.data['sub_category']
-            sub_cat = SubCategory.objects.get(sub_name = sub_cat_name)
+            # sub_cat = SubCategory.objects.get(sub_name = sub_cat_name)
             user = UserDetails.objects.get(id = request.data['user_data'], is_seller=True)
             product = Product.objects.create(
                     p_name = request.data['p_name'],
@@ -37,7 +37,7 @@ class AddProductView(APIView):
                     disc_price = request.data['disc_price'],
                     discount = request.data['discount'],
                     category = category,
-                    sub_category = sub_cat,
+                    sub_category = sub_cat_name,
                     user_data = user,
                     created_at = timezone.now(),
                     updated_at = timezone.now()
@@ -46,7 +46,7 @@ class AddProductView(APIView):
             if category_name == 'Phones':  
                 mobile = MobilePhones.objects.create(
                     category = category,
-                    sub_category = sub_cat,
+                    sub_category = sub_cat_name,
                     product = product,
                     mobile_processor = request.data['processor'],
                     mobile_battery = request.data['battery'],
@@ -58,7 +58,7 @@ class AddProductView(APIView):
             elif category_name == 'Laptops':
                 laptops = Laptops.objects.create(
                     category = category,
-                    sub_category = sub_cat,
+                    sub_category = sub_cat_name,
                     product = product,
                     laptop_processor = request.data['processor'],
                     laptop_battery = request.data['battery'],
@@ -70,7 +70,7 @@ class AddProductView(APIView):
             elif category_name == 'LCD':
                 lcd = LCD.objects.create(
                     category = category,
-                    sub_category = sub_cat,
+                    sub_category = sub_cat_name,
                     product = product,
                     lcd_display = request.data['display'],
                     lcd_power_consumption = request.data['power_consumption'],
@@ -81,7 +81,7 @@ class AddProductView(APIView):
             elif category_name == 'AC':
                 ac = AC.objects.create(
                     category = category,
-                    sub_category = sub_cat,
+                    sub_category = sub_cat_name,
                     product = product,
                     ac_capacity = request.data['capacity'],
                     ac_type = request.data['type'],
@@ -97,14 +97,12 @@ class AddProductView(APIView):
             )
             variation.save()
             return Response({
-                'data' : serializer.data,
                 'error' : False,
                 'msg' : 'Product Added Successfully'
             })
         return Response({
             'error' : True,
             'msg' : 'Cannot Add Product',
-            'data' : image
         })
 class ProductView(APIView):
 
