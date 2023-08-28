@@ -17,15 +17,22 @@ class AddProductView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     
     def post(self, request):
-        print(request.data)
+        # print(request.data)
         serializer = AddProductSerializer(data=request.data)
         image = request.data['p_image']
         if serializer.is_valid():
-            print('into for Loop')
+            # print('into for Loop')
+            # print(request.data['ac_capacity'])
             category_name = request.data['category']
             category = Category.objects.get(cat_name = category_name)
-            sub_cat_name = request.data['sub_category']
+            # sub_cat_name = request.data['sub_category']
             # sub_cat = SubCategory.objects.get(sub_name = sub_cat_name)
+            inverter = request.data['ac_inverter']
+            invert = False
+            if inverter == "true":
+                invert = True
+            else:
+                invert = False
             user = UserDetails.objects.get(id = request.data['user_data'], is_seller=True)
             product = Product.objects.create(
                     p_name = request.data['p_name'],
@@ -37,7 +44,7 @@ class AddProductView(APIView):
                     disc_price = request.data['disc_price'],
                     discount = request.data['discount'],
                     category = category,
-                    sub_category = sub_cat_name,
+                    # sub_category = sub_cat_name,
                     user_data = user,
                     created_at = timezone.now(),
                     updated_at = timezone.now()
@@ -46,48 +53,48 @@ class AddProductView(APIView):
             if category_name == 'Phones':  
                 mobile = MobilePhones.objects.create(
                     category = category,
-                    sub_category = sub_cat_name,
+                    # sub_category = sub_cat_name,
                     product = product,
-                    mobile_processor = request.data['processor'],
-                    mobile_battery = request.data['battery'],
-                    mobile_memory = request.data['memory'],
-                    mobile_display = request.data['display'],
-                    mobile_camera = request.data['camera']
+                    mobile_processor = request.data['mobile_processor'],
+                    mobile_battery = request.data['mobile_battery'],
+                    mobile_memory = request.data['mobile_memory'],
+                    mobile_display = request.data['mobile_display'],
+                    mobile_camera = request.data['mobile_camera']
                 )
                 mobile.save()
             elif category_name == 'Laptops':
                 laptops = Laptops.objects.create(
                     category = category,
-                    sub_category = sub_cat_name,
+                    # sub_category = sub_cat_name,
                     product = product,
-                    laptop_processor = request.data['processor'],
-                    laptop_battery = request.data['battery'],
-                    laptop_memory = request.data['memory'],
-                    laptop_display = request.data['display'],
-                    laptop_generation = request.data['generation']
+                    laptop_processor = request.data['laptop_processor'],
+                    laptop_battery = request.data['laptop_battery'],
+                    laptop_memory = request.data['laptop_memory'],
+                    laptop_display = request.data['laptop_display'],
+                    laptop_generation = request.data['laptop_generation']
                 )
                 laptops.save()
             elif category_name == 'LCD':
                 lcd = LCD.objects.create(
                     category = category,
-                    sub_category = sub_cat_name,
+                    # sub_category = sub_cat_name,
                     product = product,
-                    lcd_display = request.data['display'],
-                    lcd_power_consumption = request.data['power_consumption'],
-                    lcd_audio = request.data['audio'],
-                    lcd_chip = request.data['chip']
+                    lcd_display = request.data['lcd_display'],
+                    lcd_power_consumption = request.data['lcd_power_consumption'],
+                    lcd_audio = request.data['lcd_audio'],
+                    lcd_chip = request.data['lcd_chip']
                 )
                 lcd.save()
             elif category_name == 'AC':
                 ac = AC.objects.create(
                     category = category,
-                    sub_category = sub_cat_name,
+                    # sub_category = sub_cat_name,
                     product = product,
-                    ac_capacity = request.data['capacity'],
-                    ac_type = request.data['type'],
-                    ac_inverter = request.data['inverter'],
-                    ac_warranty = request.data['warranty'],
-                    ac_energy_efficiency = request.data['energy_efficiency']
+                    ac_capacity = request.data['ac_capacity'],
+                    ac_type = request.data['ac_type'],
+                    ac_inverter = invert,
+                    ac_warranty = request.data['ac_warranty'],
+                    ac_energy_efficiency = request.data['ac_energy_efficiency']
                 )
                 ac.save()
             variation = Variation.objects.create(
@@ -266,17 +273,69 @@ class AddCompareView(APIView):
     
     def get(self,request, id):
         compare = CompareProducts.objects.filter(user_data = id)
+        # count = CompareProducts.objects.filter(user_data = id).count()
+        cat = 'Null'
+        p_id1 = 0
+        data_list = [] 
+        data_cat = []
+        # if compare is not None:
+        #     serializer = ShowCompareSerializer(compare, many=True)
+        #     return Response({
+        #         'data' : serializer.data,
+        #         'error' : False
+        #     })
+        # return Response({
+        #     'error' : True,
+        #     'msg' : 'There is no Product to Show'
+        # })
         if compare is not None:
-            serializer = ShowCompareSerializer(compare, many=True)
-            return Response({
-                'data' : serializer.data,
-                'error' : False
-            })
+                # print(count)
+            serializer = ShowCompareSerializer(compare, many=True)  
+            # if count == 2:
+            for products in compare:
+                cat = products.product.category.cat_name
+                p_id = products.product.p_id
+                
+                if cat == 'LCD':
+                    lcd = LCD.objects.get(product_id=p_id)
+                    lcdserializer = LCDSerializer(lcd)
+                    data_list.append(lcdserializer.data)
+                    if len(data_cat) == 0:
+                        data_cat.append(cat)
+                elif cat == 'AC':
+                    ac = AC.objects.get(product_id=p_id)
+                    acserializer = ACSerializer(ac)
+                    data_list.append(acserializer.data)
+                    if len(data_cat) == 0:
+                        data_cat.append(cat)
+                elif cat == 'Laptops':
+                    laptops = Laptops.objects.get(product_id=p_id)
+                    laptopSerializer = LaptopSerializer(laptops)
+                    data_list.append(laptopSerializer.data)
+                    if len(data_cat) == 0:
+                        data_cat.append(cat)
+                elif cat == 'Phones':
+                    phones = MobilePhones.objects.get(product_id=p_id)
+                    phoneserializer = MobileSerializer(phones)
+                    data_list.append(phoneserializer.data)
+                    if len(data_cat) == 0:
+                        data_cat.append(cat)
+            if data_list:
+                data = {
+                    'details' : data_list,
+                    'product' : serializer.data,
+                    'category' : data_cat
+                }
+                return Response({
+                    'data': data,
+                    'msg': 'Descripted Successfully',
+                    'error': False
+                }, status.HTTP_202_ACCEPTED) 
         return Response({
             'error' : True,
-            'msg' : 'There is no Product to Show'
-        })
-
+            'msg' : 'There is no Details to Show'
+        }, status.HTTP_204_NO_CONTENT)             
+                
 class DeleteCompareView(APIView):
     def post(self, request):
         serializer = AddCompareSerializer(data=request.data)

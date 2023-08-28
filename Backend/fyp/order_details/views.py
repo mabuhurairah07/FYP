@@ -18,38 +18,6 @@ import stripe
 from decimal import Decimal
 import json
 
-
-class ShipmentView(APIView):
-    def post(self, request):
-        data = request.data
-        serializer = AddShipmentSerializer(data=data)
-        if serializer.is_valid():
-            address = request.data['address']
-            city = request.data['city']
-            state = request.data['state']
-            zip = request.data['zip']
-            user_id = request.data['user_id']
-            firstname = request.data['firstname']
-            lastname = request.data['lastname']
-            user = UserDetails.objects.get(id=user_id)
-            shipment = ShipmentDetails.objects.create(
-                address = address,
-                city = city,
-                state = state,
-                zip = zip,
-                user_id = user,
-                last_name=lastname,
-                first_name=firstname
-            )
-            shipment.save()
-            return Response({'data' : serializer.data, 'error' : False, 'msg' : "Success"}, status.HTTP_202_ACCEPTED)
-        return Response({ 'error' : True, 'msg' : "Shipment Address cannot be added"}, status.HTTP_204_NO_CONTENT)
-    def get(self, request):
-        shipment = ShipmentDetails.objects.all()
-        if shipment is not None:
-            serializer = ShipmentSerializer(shipment, many=True)
-            return Response({'data' : serializer.data, 'error' : False}, status.HTTP_202_ACCEPTED)
-        return Response({'msg' : 'No data to show', 'error' : True}, status.HTTP_204_NO_CONTENT)
     
 class ShowShipmentView(APIView):
     def get(self, request, id):
@@ -104,13 +72,29 @@ class OrderView(APIView):
     #             request.session['id'] = session_id
         if serializer.is_valid():
             user_id = serializer.validated_data['user_id']
-            card_number = serializer.validated_data['card_number']
-            exp_month = serializer.validated_data['exp_month']
-            exp_year = serializer.validated_data['exp_year']
-            cvc = serializer.validated_data['cvc']
             payment = request.data['payment_type']
-
-            
+            if payment == 'Stripe':
+                card_number = request.data['card_number']
+                exp_month = request.data['exp_month']
+                exp_year = request.data['exp_year']
+                cvc = request.data['cvc']
+            address = request.data['address']
+            city = request.data['city']
+            state = request.data['state']
+            zip = request.data['zip']
+            firstname = request.data['firstname']
+            lastname = request.data['lastname']
+            user = UserDetails.objects.get(id=user_id)
+            shipment = ShipmentDetails.objects.create(
+                address = address,
+                city = city,
+                state = state,
+                zip = zip,
+                user_id = user,
+                last_name=lastname,
+                first_name=firstname
+            )
+            shipment.save()
             user_data = get_object_or_404(UserDetails, id=user_id)
             cart = Cart.objects.filter(user_data=user_data)
             total = Decimal('0')
@@ -119,7 +103,6 @@ class OrderView(APIView):
             if cart.exists():
                 # print('into if')
                 for product in cart:
-                    # print('into for')
                     price = product.product.disc_price
                     quantity = int(product.quantity)
                     total += (price * quantity)
@@ -129,41 +112,44 @@ class OrderView(APIView):
                 total_bill = total + shipping
                 if payment == 'Stripe':
                     try:
-                        payment_method = 'tok_visa'
+                        # Use a test token instead of card details
                         payment_method = stripe.PaymentMethod.create(
                             type="card",
                             card={
-                                "number": "4242424242424242",  # Use a test card number
-                                "exp_month": 12,
-                                "exp_year": 2023,
-                                "cvc": "123",
-                            },
+                                "token" : "tok_visa"
+                            },  
+                        )
+
+                        # Continue with the payment process using the test token
+                        payment_intent = stripe.PaymentIntent.create(
+                            amount=int(total_bill),
+                            currency="usd",
+                            payment_method=payment_method.id,  # Use the PaymentMethod ID
+                            confirm=True,
                         )
 
                         order = Order.objects.create(
                             user_id=user_data,
                             total_bill=total_bill,
+                            bill_payed=total_bill,
+                            payment_type='Stripe',
                             discount=discount,
-                            bill_payed='0',
-                            payment_type='None',
+                            o_status='In Process',
                             created_at=timezone.now(),
                             updated_at=timezone.now()
                         )
-                        
-                        # Continue with the payment process
-                        payment_intent = stripe.PaymentIntent.create(
-                            amount=int(total_bill),
-                            currency="usd",
-                            payment_method='pm_card_visa',
-                            confirm=True,
-                        )
-                        
-                        # Mark the order as paid
-                        order.bill_payed = total_bill
-                        order.payment_type = 'Stripe'
                         order.save()
-
-                        # Return a success response to the user
+                        transaction = Transaction.objects.create(
+                                transaction_id = payment_method.stripe_id,
+                                order=order,
+                                created_at=timezone.now(),
+                                updated_at=timezone.now()
+                        )
+                        for q in cart: 
+                            update = Variation.objects.get(product_id=product.product.p_id)
+                            update.quantity -= int(q.quantity)
+                            update.save()
+                        cart.delete()
                         return Response({
                             'data': serializer.data,
                             'error': False,
@@ -181,11 +167,16 @@ class OrderView(APIView):
                             total_bill=total_bill,
                             discount=discount,
                             bill_payed='0',
-                            payment_type='None',
+                            payment_type='Cash',
+                            o_status='In Process',
                             created_at=timezone.now(),
                             updated_at=timezone.now()
                         )
                     order.save()
+                    for q in cart: 
+                        update = Variation.objects.get(product_id=product.product.p_id)
+                        update.quantity -= int(q.quantity)
+                        update.save()
                     cart.delete()
                     # orderSerializer = ViewOrderSerializer(order)
                     return Response({
@@ -215,53 +206,6 @@ class OrderView(APIView):
             'error' : True,
             'msg' : 'There is an error Fetching data' 
         })
-      
-class UpdateOrderView(APIView):
-
-    def post(self, request):
-        serializer = UpdateOrderSerializer(data=request.data)
-        if serializer.is_valid():
-            user_data = request.data['user_id']
-            order_id = request.data['order_id']
-            payment = request.data['payment_type']
-            order = Order.objects.get(o_id=order_id)
-            cart = Cart.objects.filter(user_data=user_data)
-            if payment == 'Stripe':
-                id = request.session.get('id')
-                order.payment_type = payment
-                order.bill_payed = order.total_bill
-                order.save()
-                cart.delete()
-                add = Transaction.objects.create(order=order, transaction_id = id, created_at=timezone.now(), updated_at=timezone.now())
-                transaction_serializer = TransactionSerializer(add)
-            elif payment == 'Cash':
-                order.payment_type = payment
-                order.bill_payed = 'pending' 
-                order.save() 
-                cart.delete()
-            return Response({
-                'data' : serializer.data,
-                'error' : False,
-                'msg' : 'Order Updated SuccessFully'
-            }, status.HTTP_202_ACCEPTED)
-        return Response({
-            'error' : True,
-            'msg' : 'Cannot Create Order, Your Order is not Found'
-        }, status.HTTP_204_NO_CONTENT)
-    
-    def get(self, request,id):
-        order = Order.objects.filter(user_id_id = id)
-        if order is not None:
-            serializer = OrderSerializer(order, many=True)
-            return Response({
-                'data' : serializer.data,
-                'error'  : False,
-            })
-        return Response({
-            'error' : True,
-            'msg' : 'There is an error Fetching data' 
-        })
-
 
 class UpdateStatusView(APIView):
 
@@ -283,4 +227,17 @@ class UpdateStatusView(APIView):
             'error' : True,
             'msg' : 'Cannot Update Order, Your Order is not Found'
         }, status.HTTP_204_NO_CONTENT) 
+
+class DeleteOrderView(APIView):
+
+    def post(self, request):
+        serializer = DorderSerializer(data=request.data)
+        if serializer.is_valid():
+            print(request.data['order_id'])
+            order = Order.objects.get(o_id=request.data['order_id'])
+            order.delete()
+            return Response({'error': False, 'msg': 'Order deleted successfully.'}, status=status.HTTP_200_OK)
+        return Response({'error': True, 'msg': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
 

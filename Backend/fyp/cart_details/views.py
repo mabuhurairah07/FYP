@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Cart
 from user_details.models import UserDetails
-from product_details.models import Product
+from product_details.models import *
 from .serializers import *
 
 class AddToCartView(APIView):
@@ -15,6 +15,9 @@ class AddToCartView(APIView):
             user_id = request.data['user_data']
             p_id = request.data['product']
             quantity = request.data['quantity']
+            variation = Variation.objects.get(product_id=p_id)
+            if variation.quantity < int(quantity):
+                return Response({'error': True, 'msg': 'Product Sold Out', 'data':'Product Sold Out'})
             created_at = timezone.now()
             updated_at = timezone.now()
             if not UserDetails.objects.get(id = user_id):
@@ -47,14 +50,15 @@ class CartView(APIView):
         return Response({'error' : True, 'msg' : 'Cannot Display Products'}, status.HTTP_204_NO_CONTENT)
     
     def post(self, request):
-        print(request.data)
         serializer = CartUpdateSerializer(data=request.data)
         if serializer.is_valid():
             print('into for loop')
             user_id = request.data['user_data']
             p_id = request.data['product']
             quantity = request.data['quantity']
-            print(request.data)
+            variation = Variation.objects.get(product_id=p_id)
+            if variation.quantity < int(quantity):
+                return Response({'error': True, 'msg': 'Not Enough Quantity.', 'data':'Product Sold Out'})
             user = UserDetails.objects.get(id=user_id)
             product = Product.objects.get(p_id=p_id)
             try:

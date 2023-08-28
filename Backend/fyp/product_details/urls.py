@@ -15,4 +15,5 @@ urlpatterns = [
     path('delete_compare/', DeleteCompareView.as_view(), name="Delete_compare"),
     path('add_category/', AddCategoryView.as_view(), name="add_Category"),
     path('add_product/', AddProductView.as_view(), name="add_product"),
+    # path('show/<id>', ShowProductDescription.as_view(), name="add_product"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

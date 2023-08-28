@@ -11,24 +11,21 @@ class ShipmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShipmentDetails
         fields = "__all__"
-        
-class AddShipmentSerializer(serializers.Serializer):
+
+class AddOrderSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
+    payment_type = serializers.CharField()
     city = serializers.CharField()
     state = serializers.CharField()
     zip = serializers.CharField()
     address = serializers.CharField()
     firstname = serializers.CharField()
     lastname = serializers.CharField()
-
-class AddOrderSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField()
-    card_number = serializers.IntegerField()
-    exp_month = serializers.IntegerField()
-    exp_year = serializers.IntegerField()
-    cvc = serializers.IntegerField()
-    payment_type = serializers.CharField()
-
+    if payment_type == 'Stripe':
+        card_number = serializers.IntegerField()
+        exp_month = serializers.IntegerField()
+        exp_year = serializers.IntegerField()
+        cvc = serializers.IntegerField()
 
 class UpdateOrderSerializer(serializers.Serializer):
     order_id = serializers.IntegerField()
@@ -43,3 +40,6 @@ class UpdateStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['o_id', 'o_status']
+
+class DorderSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()

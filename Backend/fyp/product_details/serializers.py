@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product,Category,SubCategory,Wishlist,Variation,CompareProducts,MobilePhones,Laptops,LCD,AC
+from .models import Product,Category,Wishlist,Variation,CompareProducts,MobilePhones,Laptops,LCD,AC
 from user_details.models import UserDetails
 
 class AddProductSerializer(serializers.Serializer):
@@ -11,7 +11,7 @@ class AddProductSerializer(serializers.Serializer):
     disc_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     discount = serializers.IntegerField()
     category = serializers.CharField(max_length=250)
-    sub_category = serializers.CharField(max_length=250)
+    # sub_category = serializers.CharField(max_length=250)
     user_data = serializers.CharField(max_length=250)
     if category == 'Phones':
             mobile_processor = serializers.CharField(max_length=500)
@@ -45,14 +45,14 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
-class SubCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SubCategory
-        fields = '__all__'
+# class SubCategorySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = SubCategory
+#         fields = '__all__'
 
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
-    sub_category = SubCategorySerializer()
+    # sub_category = SubCategorySerializer()
 
     class Meta:
         model = Product
@@ -60,7 +60,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class MobileSerializer(serializers.ModelSerializer):
     category = CategorySerializer
-    sub_category = SubCategorySerializer
+    # sub_category = SubCategorySerializer
     product = ProductSerializer
     class Meta:
         model=MobilePhones
@@ -68,7 +68,7 @@ class MobileSerializer(serializers.ModelSerializer):
 
 class LaptopSerializer(serializers.ModelSerializer):
     category = CategorySerializer
-    sub_category = SubCategorySerializer
+    # sub_category = SubCategorySerializer
     product = ProductSerializer
     class Meta:
         model=Laptops
@@ -76,7 +76,7 @@ class LaptopSerializer(serializers.ModelSerializer):
 
 class LCDSerializer(serializers.ModelSerializer):
     category = CategorySerializer
-    sub_category = SubCategorySerializer
+    # sub_category = SubCategorySerializer
     product = ProductSerializer
     class Meta:
         model=LCD
@@ -84,7 +84,7 @@ class LCDSerializer(serializers.ModelSerializer):
 
 class ACSerializer(serializers.ModelSerializer):
     category = CategorySerializer
-    sub_category = SubCategorySerializer
+    # sub_category = SubCategorySerializer
     product = ProductSerializer
     class Meta:
         model=AC

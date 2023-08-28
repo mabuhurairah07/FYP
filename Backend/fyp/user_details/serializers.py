@@ -62,3 +62,8 @@ class AdminLoginSerializer(serializers.Serializer):
         if not username or not password:
             raise serializers.ValidationError("Both Fields are required")
         return data
+    
+class ForgotPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDetails
+        fields = ['id','email']

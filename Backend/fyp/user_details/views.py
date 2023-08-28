@@ -206,5 +206,7 @@ class TotalUsersView(APIView):
                 'count' : customers_count
             }
         return []
+    
+
 
     
