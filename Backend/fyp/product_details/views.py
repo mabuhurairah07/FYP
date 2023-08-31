@@ -373,4 +373,33 @@ class AddCategoryView(APIView):
             'data' : serializer.errors,
             'msg' : 'Cannot Add Category'
         })
+    def get(self, request):
+        category = Category.objects.all()
+        if category is not None:
+            serializer = CategorySerializer(category, many=True)
+            return Response({
+                'data' : serializer.data,
+                'error' : False,
+            })
+        return Response({
+            'error' : True,
+            'msg' : 'category No Found'
+        })
+    
+class SellerProductDetailsView(APIView):
+
+    def get(self, request, id):
+        product = Product.objects.get(user_data_id=id)
+        if product is not None:
+            serializer = ProductSerializer(product)
+            return Response({
+                'data' : serializer.data,
+                'error' : False,
+            })
+        return Response({
+            'error' : True,
+            'msg' : 'Product No Found'
+        })
             
+            
+    

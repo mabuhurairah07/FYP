@@ -145,9 +145,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
+    'http://localhost:3001',
 ]
 
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'media')
 # MEDIA_ROOT=BASE_DIR/"product_details/media/product_images"
 
 MEDIA_URL="/media/"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'mabuhurairah07@gmail.com'
+EMAIL_HOST_PASSWORD = '	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'

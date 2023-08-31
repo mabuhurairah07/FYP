@@ -4,7 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import UserDetails
+from order_details.models import *
 from django.utils import timezone
+import random
+import string
+from django.core.mail import send_mail
+from datetime import datetime
 # Create your views here.
 
 from .serializers import *
@@ -110,7 +115,7 @@ class AdminSignupView(APIView):
             user.save()
             return Response({'data': serializer.data,'error' : False, 'msg' : 'Admin Account Created Successfully'},status.HTTP_201_CREATED)
         else:
-           return Response(serializer.errors, status.HTTP_400_BAD_REQUEST, {'error' : True, 'msg' : 'Error Creating Admin Account'})
+           return Response(serializer.data, status.HTTP_400_BAD_REQUEST, {'error' : True, 'msg' : 'Error Creating Admin Account'})
         
 class AdminLoginView(APIView):
 
@@ -206,7 +211,141 @@ class TotalUsersView(APIView):
                 'count' : customers_count
             }
         return []
-    
+
+def generate_random_code(length):
+    characters = string.digits  # Use digits for a numeric code
+    code = ''.join(random.choice(characters) for _ in range(length))
+    return code  
+
+class ForgotPasswordView(APIView):
 
 
-    
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                user = UserDetails.objects.get(email=request.data['email'])
+            except UserDetails.DoesNotExist:
+                return Response({
+                    'error': True,
+                    'msg': 'User with this email does not exist.'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            reset_code = generate_random_code(6)
+
+            subject = "Password Reset Code"
+            message = f"Your password reset code is: {reset_code}"
+            from_email = "mabuhurairah07@gmail.com"  # Replace with your email
+            recipient_list = [user.email]
+
+            send_mail(subject, message, from_email, recipient_list)
+
+            return Response({
+                'error': False,
+                'msg': 'Password reset code has been sent to your email.',
+                'code' : reset_code,
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            'error': True,
+            'msg': 'Invalid data.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+class DashboardView(APIView):
+    def get(self, request, id):
+            current_month = timezone.now().month
+            current_year = timezone.now().year
+            current_date = timezone.now().date()
+            user = UserDetails.objects.get(id=id, is_admin=True)
+            if user is None:
+                return Response({
+                'error' : True,
+                'data' : 'User Not Found'
+            })
+            else:
+                order = Order.objects.all()
+                todayOrders = Order.objects.filter(updated_at__date=current_date)
+                monthOrder = Order.objects.filter(updated_at__month=current_month, updated_at__year=current_year)
+                monthCustomers = UserDetails.objects.filter(is_admin=False, is_seller=False, is_active=True, updated_at__month=current_month, updated_at__year=current_year)
+                todayCustomers = UserDetails.objects.filter(is_admin=False, is_seller=False, is_active=True, updated_at__date=current_date)
+                customer = UserDetails.objects.filter(is_admin=False, is_seller=False, is_active=True)
+                processing = Order.objects.filter(o_status='In Process')
+                delivered = Order.objects.filter(o_status='Delivered')
+                deliveredcount = delivered.count()
+                processingcount = processing.count()
+                customercount = customer.count()
+                ordercount = order.count()
+                monthordercount = monthOrder.count()
+                monthcustomercount = monthCustomers.count()
+                todaycustomercount = todayCustomers.count()
+                todayordercount = todayOrders.count()
+                if order and customer is not None:
+                    data = {
+                        'ordercount' : ordercount,
+                        'customercount' : customercount,
+                        'monthorders' : monthordercount,
+                        'monthcustomers' : monthcustomercount,
+                        'todayorders' : todayordercount,
+                        'todaycustomers' : todaycustomercount,
+                        'processing' : processingcount,
+                        'delivered' : deliveredcount
+                    }
+                    return Response({
+                        'data' : data,
+                        'error' : False,
+                    })
+                return Response({
+                    'error' : True,
+                    'msg' : 'No info Found'
+                })
+            
+class SellerDashboardView(APIView):
+    def get(self, request, id):
+            current_month = timezone.now().month
+            current_year = timezone.now().year
+            current_date = timezone.now().date()
+            user = UserDetails.objects.get(id=id, is_seller=True)
+            if user is None:
+                return Response({
+                'error' : True,
+                'data' : 'User Not Found'
+            })
+            else:
+                order = OrderDetails.objects.filter(product__user_data__id=id)
+                revenue = int(0)
+                for bill in order:
+                    revenue += int(bill.order.bill_payed)
+                todayOrders = OrderDetails.objects.filter(product__user_data__id=id , updated_at__date=current_date)
+                todayRevenue = int(0)
+                for bill in todayOrders:
+                    todayRevenue += int(bill.order.bill_payed)
+                monthOrder = OrderDetails.objects.filter(product__user_data__id=id , updated_at__month=current_month, updated_at__year=current_year)
+                monthRevenue = int(0)
+                for bill in monthOrder:
+                    monthRevenue += int(bill.order.bill_payed)
+                processing = OrderDetails.objects.filter(product__user_data__id=id , order__o_status='In Process')
+                delivered = OrderDetails.objects.filter(product__user_data__id=id , order__o_status='Delivered')
+                deliveredcount = delivered.count()
+                processingcount = processing.count()
+                ordercount = order.count()
+                monthordercount = monthOrder.count()
+                todayordercount = todayOrders.count()
+                if order is not None:
+                    data = {
+                        'ordercount' : ordercount,
+                        'revenue' : revenue,
+                        'monthorders' : monthordercount,
+                        'monthRevenue' : monthRevenue,
+                        'todayorders' : todayordercount,
+                        'todayRevenue' : todayRevenue,
+                        'processing' : processingcount,
+                        'delivered' : deliveredcount
+                    }
+                    return Response({
+                        'data' : data,
+                        'error' : False,
+                    })
+                return Response({
+                    'error' : True,
+                    'msg' : 'No info Found'
+                })

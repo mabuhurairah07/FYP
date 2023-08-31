@@ -149,6 +149,17 @@ class OrderView(APIView):
                             update = Variation.objects.get(product_id=product.product.p_id)
                             update.quantity -= int(q.quantity)
                             update.save()
+                            details = OrderDetails.objects.create(
+                            actual_price=q.product.p_price,
+                            sale_price=q.product.disc_price,
+                            discount = q.product.discount,
+                            order = order,
+                            product = q.product,
+                            variation = update,
+                            created_at=timezone.now(),
+                            updated_at=timezone.now()
+                        )
+                        details.save()
                         cart.delete()
                         return Response({
                             'data': serializer.data,
@@ -177,6 +188,17 @@ class OrderView(APIView):
                         update = Variation.objects.get(product_id=product.product.p_id)
                         update.quantity -= int(q.quantity)
                         update.save()
+                        details = OrderDetails.objects.create(
+                            actual_price=q.product.p_price,
+                            sale_price=q.product.disc_price,
+                            discount = q.product.discount,
+                            order = order,
+                            product = q.product,
+                            variation = update,
+                            created_at=timezone.now(),
+                            updated_at=timezone.now()
+                        )
+                        details.save()
                     cart.delete()
                     # orderSerializer = ViewOrderSerializer(order)
                     return Response({
@@ -239,5 +261,21 @@ class DeleteOrderView(APIView):
             return Response({'error': False, 'msg': 'Order deleted successfully.'}, status=status.HTTP_200_OK)
         return Response({'error': True, 'msg': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+class SellerOrderView(APIView):
+    def get(self, request, id):
+        orderDetails = OrderDetails.objects.filter(product__user_data__id=id)
+        orders = []
+        for order in orderDetails:
+            orders.append(order.order)
+        if orders is not None:
+            serializer = OrderSerializer(orders, many=True)
+            return Response({
+                'data' : serializer.data,
+                'error'  : False,
+            })
+        return Response({
+            'error' : True,
+            'msg' : 'There is an error Fetching data' 
+        })
 
 

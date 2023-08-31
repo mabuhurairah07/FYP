@@ -29,11 +29,11 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Both Fields are required")
         return data
     
-class SellerSignupSerializer(serializers.ModelSerializer):
+class SellerSignupSerializer(serializers.Serializer):
+    username = serializers.CharField()     
     password = serializers.CharField(write_only=True)
-    class Meta:
-        model = UserDetails
-        fields = ['id','username', 'email', 'password', 'phone_no']
+    email = serializers.CharField() 
+    phone_no = serializers.CharField() 
 
 class SellerLoginSerializer(serializers.Serializer):
     username = serializers.CharField() 
@@ -46,11 +46,11 @@ class SellerLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Both Fields are required")
         return data
     
-class AdminSignupSerializer(serializers.ModelSerializer):
+class AdminSignupSerializer(serializers.Serializer):
+    username = serializers.CharField()     
     password = serializers.CharField(write_only=True)
-    class Meta:
-        model = UserDetails
-        fields = ['id','username', 'email', 'password', 'phone_no']
+    email = serializers.CharField() 
+    phone_no = serializers.CharField() 
 
 class AdminLoginSerializer(serializers.Serializer):
     username = serializers.CharField() 
@@ -66,4 +66,4 @@ class AdminLoginSerializer(serializers.Serializer):
 class ForgotPasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
-        fields = ['id','email']
+        fields = ['email']
