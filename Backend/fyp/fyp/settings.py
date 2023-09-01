@@ -160,3 +160,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mabuhurairah07@gmail.com'
 EMAIL_HOST_PASSWORD = '	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'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'my_session'
+SESSION_COOKIE_AGE = 3600

@@ -67,3 +67,6 @@ class ForgotPasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
         fields = ['email']
+
+class CodeSerializer(serializers.Serializer):
+    code = serializers.CharField()     

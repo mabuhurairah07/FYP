@@ -212,44 +212,6 @@ class TotalUsersView(APIView):
             }
         return []
 
-def generate_random_code(length):
-    characters = string.digits  # Use digits for a numeric code
-    code = ''.join(random.choice(characters) for _ in range(length))
-    return code  
-
-class ForgotPasswordView(APIView):
-
-
-    def post(self, request):
-        serializer = ForgotPasswordSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                user = UserDetails.objects.get(email=request.data['email'])
-            except UserDetails.DoesNotExist:
-                return Response({
-                    'error': True,
-                    'msg': 'User with this email does not exist.'
-                }, status=status.HTTP_404_NOT_FOUND)
-
-            reset_code = generate_random_code(6)
-
-            subject = "Password Reset Code"
-            message = f"Your password reset code is: {reset_code}"
-            from_email = "mabuhurairah07@gmail.com"  # Replace with your email
-            recipient_list = [user.email]
-
-            send_mail(subject, message, from_email, recipient_list)
-
-            return Response({
-                'error': False,
-                'msg': 'Password reset code has been sent to your email.',
-                'code' : reset_code,
-            }, status=status.HTTP_200_OK)
-
-        return Response({
-            'error': True,
-            'msg': 'Invalid data.'
-        }, status=status.HTTP_400_BAD_REQUEST)
 
 class DashboardView(APIView):
     def get(self, request, id):
@@ -348,4 +310,62 @@ class SellerDashboardView(APIView):
                 return Response({
                     'error' : True,
                     'msg' : 'No info Found'
+                })
+            
+def generate_random_code(length):
+    characters = string.digits  # Use digits for a numeric code
+    code = ''.join(random.choice(characters) for _ in range(length))
+    return code  
+
+class ForgotPasswordView(APIView):
+
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                user = UserDetails.objects.get(email=request.data['email'])
+            except UserDetails.DoesNotExist:
+                return Response({
+                    'error': True,
+                    'msg': 'User with this email does not exist.'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            reset_code = generate_random_code(6)
+            request.session['code'] = reset_code
+
+            # subject = "Password Reset Code"
+            # message = f"Your password reset code is: {reset_code}"
+            # from_email = "mabuhurairah07@gmail.com"  # Replace with your email
+            # recipient_list = [user.email]
+
+            # send_mail(subject, message, from_email, recipient_list)
+
+            return Response({
+                'error': False,
+                'msg': 'Password reset code has been sent to your email.',
+                'code' : reset_code,
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            'error': True,
+            'msg': 'Invalid data.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+class CheckCodeView(APIView):
+
+    def post(self, request):
+        serializer = CodeSerializer(data=request.data)
+        if serializer.is_valid():
+            sessionCode = request.session.get('code')
+            code = request.data['code']
+            if sessionCode == code:
+                return Response({
+                    'data' : 'Validated',
+                    'error' : False,
+                })
+            else:
+                return Response({
+                    'data' : 'Invalid Code Please Enter Right Code',
+                    'error' : True
                 })
