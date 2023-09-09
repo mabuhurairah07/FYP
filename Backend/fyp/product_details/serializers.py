@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from .models import Product,Category,Wishlist,Variation,CompareProducts,MobilePhones,Laptops,LCD,AC
+from .models import *
 from user_details.models import UserDetails
 
 class AddProductSerializer(serializers.Serializer):
     p_image = serializers.ImageField()
+    p_name = serializers.CharField(max_length=250)
     p_brand = serializers.CharField(max_length=250)
     p_status = serializers.IntegerField()
     p_des = serializers.CharField(max_length=5000)
@@ -130,3 +131,8 @@ class VariationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Variation
         fields = '__all__'
+
+class FeedBackSerializer(serializers.Serializer):
+     product = serializers.IntegerField()
+     user = serializers.IntegerField()
+     stars = serializers.IntegerField()

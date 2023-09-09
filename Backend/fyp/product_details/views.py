@@ -17,7 +17,7 @@ class AddProductView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     
     def post(self, request):
-        # print(request.data)
+        print(request.data)
         serializer = AddProductSerializer(data=request.data)
         image = request.data['p_image']
         if serializer.is_valid():
@@ -389,9 +389,9 @@ class AddCategoryView(APIView):
 class SellerProductDetailsView(APIView):
 
     def get(self, request, id):
-        product = Product.objects.get(user_data_id=id)
+        product = Product.objects.filter(user_data_id=id)
         if product is not None:
-            serializer = ProductSerializer(product)
+            serializer = ProductSerializer(product,many=True)
             return Response({
                 'data' : serializer.data,
                 'error' : False,
@@ -401,5 +401,29 @@ class SellerProductDetailsView(APIView):
             'msg' : 'Product No Found'
         })
             
-            
+
+class FeedBackView(APIView):
+
+    def post(self, request):
+        serializer = FeedBackSerializer(data=request.data)
+        if serializer.is_valid():
+            product = request.data['product']
+            productData = Product.objects.get(p_id = product)
+            user = request.data['user']
+            userData = UserDetails.objects.get(id = user)
+            stars = request.data['stars']
+            feedback = Feedback.objects.create(
+                stars = stars,
+                product = productData,
+                user = userData
+            )
+            feedback.save()
+            return Response({
+                'msg' : 'Thanks for the Feedback',
+                'error' : False
+            })
+        return Response({
+                'msg' : 'Please Try Again',
+                'error' : True
+            })
     

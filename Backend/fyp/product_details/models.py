@@ -83,4 +83,9 @@ class AC(models.Model):
     ac_warranty = models.IntegerField()
     ac_energy_efficiency = models.IntegerField()
 
+class Feedback(models.Model):
+     stars = models.IntegerField()
+     user = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
+     product = models.ForeignKey("product_details.Product", on_delete=models.CASCADE)
+
 

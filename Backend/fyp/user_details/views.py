@@ -285,6 +285,7 @@ class SellerDashboardView(APIView):
                 monthRevenue = int(0)
                 for bill in monthOrder:
                     monthRevenue += int(bill.order.bill_payed)
+
                 processing = OrderDetails.objects.filter(product__user_data__id=id , order__o_status='In Process')
                 delivered = OrderDetails.objects.filter(product__user_data__id=id , order__o_status='Delivered')
                 deliveredcount = delivered.count()
@@ -333,6 +334,7 @@ class ForgotPasswordView(APIView):
 
             reset_code = generate_random_code(6)
             request.session['code'] = reset_code
+            request.session['email'] = request.data['email']
 
             # subject = "Password Reset Code"
             # message = f"Your password reset code is: {reset_code}"
@@ -369,3 +371,23 @@ class CheckCodeView(APIView):
                     'data' : 'Invalid Code Please Enter Right Code',
                     'error' : True
                 })
+            
+class UpdatePasswordView(APIView):
+
+    def post(self, request):
+        serializer = UpdatePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email  = request.session.get('email')
+            try:
+                user = UserDetails.objects.get(email=email)
+                user.set_password(request.data['password'])
+                user.save()
+                return Response({
+                    'error': False,
+                    'msg': 'Password has been Updated'
+                })
+            except UserDetails.DoesNotExist:
+                return Response({
+                    'error': True,
+                    'msg': 'Please Enter A Valid Password'
+                }, status=status.HTTP_404_NOT_FOUND)

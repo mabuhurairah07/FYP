@@ -70,3 +70,10 @@ class ForgotPasswordSerializer(serializers.ModelSerializer):
 
 class CodeSerializer(serializers.Serializer):
     code = serializers.CharField()     
+
+class UpdatePasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    class Meta:
+        model = UserDetails
+        fields = ['password']
+

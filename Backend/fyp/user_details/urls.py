@@ -13,6 +13,7 @@ urlpatterns = [
     path('admin/<int:id>/', AdminDetailsView.as_view(), name='AdminDetails'),
     path('forget_password/', ForgotPasswordView.as_view(), name='Forgot_Password'),
     path('validate/', CheckCodeView.as_view(), name='Validate'),
+    path('update_password/', UpdatePasswordView.as_view(), name='update'),
     path('dashboard/<id>', DashboardView.as_view(), name='dashboard'),
     path('sellerdashboard/<id>', SellerDashboardView.as_view(), name='seller_dashboard'),
 ]
