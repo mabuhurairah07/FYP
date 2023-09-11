@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import UserDetails
+from .models import *
 from order_details.models import *
 from django.utils import timezone
 import random
@@ -13,6 +13,47 @@ from datetime import datetime
 # Create your views here.
 
 from .serializers import *
+
+class UserDetailsView(APIView):
+    def get(self, request, id):
+        user = UserDetails.objects.filter(id=id)
+        if user is not None:
+            serializer = UserSerializer(user, many=True)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })
+    
+    def post(self,request, id):
+        user = UserDetails.objects.get(id=id)
+        created_at = user.created_at
+        if user is not None:
+            name = request.data['username']
+            phone_no = request.data['phone_no']
+            email = request.data['email']
+            address = request.data['address']
+            user.username = name
+            user.phone_no = phone_no
+            user.email = email
+            user.address = address
+            user.updated_at = timezone.now()
+            user.created_at = created_at
+            user.save()
+            serializer = UserSerializer(user)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })
+
+
 class SignupView(APIView):
 
     def post(self, request):
@@ -276,15 +317,15 @@ class SellerDashboardView(APIView):
                 order = OrderDetails.objects.filter(product__user_data__id=id)
                 revenue = int(0)
                 for bill in order:
-                    revenue += int(bill.order.bill_payed)
+                    revenue += float(bill.order.bill_payed)
                 todayOrders = OrderDetails.objects.filter(product__user_data__id=id , updated_at__date=current_date)
                 todayRevenue = int(0)
                 for bill in todayOrders:
-                    todayRevenue += int(bill.order.bill_payed)
+                    todayRevenue += float(bill.order.bill_payed)
                 monthOrder = OrderDetails.objects.filter(product__user_data__id=id , updated_at__month=current_month, updated_at__year=current_year)
                 monthRevenue = int(0)
                 for bill in monthOrder:
-                    monthRevenue += int(bill.order.bill_payed)
+                    monthRevenue += float(bill.order.bill_payed)
 
                 processing = OrderDetails.objects.filter(product__user_data__id=id , order__o_status='In Process')
                 delivered = OrderDetails.objects.filter(product__user_data__id=id , order__o_status='Delivered')
@@ -318,6 +359,7 @@ def generate_random_code(length):
     code = ''.join(random.choice(characters) for _ in range(length))
     return code  
 
+
 class ForgotPasswordView(APIView):
 
 
@@ -333,15 +375,18 @@ class ForgotPasswordView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
 
             reset_code = generate_random_code(6)
-            request.session['code'] = reset_code
-            request.session['email'] = request.data['email']
+            otp = OTP.objects.create(
+                otp = reset_code,
+                user = user
+            )
+            otp.save()
 
-            # subject = "Password Reset Code"
-            # message = f"Your password reset code is: {reset_code}"
-            # from_email = "mabuhurairah07@gmail.com"  # Replace with your email
-            # recipient_list = [user.email]
+            subject = "Password Reset Code"
+            message = f"Your password reset code is: {reset_code}"
+            from_email = "mabuhurairah07@gmail.com"  # Replace with your email
+            recipient_list = [user.email]
 
-            # send_mail(subject, message, from_email, recipient_list)
+            send_mail(subject, message, from_email, recipient_list)
 
             return Response({
                 'error': False,
@@ -359,11 +404,15 @@ class CheckCodeView(APIView):
     def post(self, request):
         serializer = CodeSerializer(data=request.data)
         if serializer.is_valid():
-            sessionCode = request.session.get('code')
             code = request.data['code']
-            if sessionCode == code:
+            otp = OTP.objects.get(otp=code)
+            # request.session['id'] = otp.user.id
+            if otp:
+                user_id = otp.user.id
+                otp.delete()
                 return Response({
                     'data' : 'Validated',
+                    'id' : user_id,
                     'error' : False,
                 })
             else:
@@ -374,12 +423,13 @@ class CheckCodeView(APIView):
             
 class UpdatePasswordView(APIView):
 
-    def post(self, request):
+    def post(self, request, id):
         serializer = UpdatePasswordSerializer(data=request.data)
         if serializer.is_valid():
-            email  = request.session.get('email')
+            # id  = request.session.get('id')
+            # print(id)
             try:
-                user = UserDetails.objects.get(email=email)
+                user = UserDetails.objects.get(id=id)
                 user.set_password(request.data['password'])
                 user.save()
                 return Response({

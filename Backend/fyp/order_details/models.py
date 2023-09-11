@@ -11,6 +11,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     o_status = models.CharField(default='In Process', max_length=200)
+    o_panel = models.IntegerField(default=1)
 
 class OrderDetails(models.Model):
     od_id = models.AutoField(primary_key=True)
@@ -32,3 +33,4 @@ class ShipmentDetails(models.Model):
     user_id = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
+    order = models.ForeignKey("order_details.Order", on_delete=models.CASCADE)

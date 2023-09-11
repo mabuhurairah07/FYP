@@ -9,5 +9,10 @@ class UserDetails(AbstractUser):
     is_admin = models.BooleanField(default=False)
     phoneRegex = RegexValidator(regex=r"^\+?\d{8,15}$")
     phone_no = models.CharField(validators=[phoneRegex], max_length = 16, unique=True, null = False, default='')
+    # code = models.CharField(max_length=10, default=0)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)
+
+class OTP(models.Model):
+    otp = models.CharField(max_length=250)
+    user = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)

@@ -10,6 +10,7 @@ from .models import *
 from user_details.models import UserDetails
 import pandas as pd
 import os
+from .recommendation import ProductRecommender
 
 
 
@@ -426,4 +427,19 @@ class FeedBackView(APIView):
                 'msg' : 'Please Try Again',
                 'error' : True
             })
+    
+class ProductRecommendationView(APIView):
+    def get(self, request, user_id):
+        # Get user's past feedback
+        user_feedback = Feedback.objects.filter(user_id=user_id)
+        user_feedback_df = pd.DataFrame(list(user_feedback.values()))
+        
+        # Initialize the recommender with user feedback data
+        recommender = ProductRecommender(user_feedback_df)
+        
+        # Get product recommendations for the user (example: top 5)
+        recommended_products = recommender.get_recommendations(user_id)
+        
+        return Response({'recommended_products': recommended_products})
+
     

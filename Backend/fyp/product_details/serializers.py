@@ -133,6 +133,6 @@ class VariationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class FeedBackSerializer(serializers.Serializer):
-     product = serializers.IntegerField()
-     user = serializers.IntegerField()
-     stars = serializers.IntegerField()
+     product = serializers.CharField()
+     user = serializers.CharField()
+     stars = serializers.CharField()

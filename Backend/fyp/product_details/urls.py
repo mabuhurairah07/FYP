@@ -17,4 +17,6 @@ urlpatterns = [
     path('add_category/', AddCategoryView.as_view(), name="add_Category"),
     path('add_product/', AddProductView.as_view(), name="add_product"),
     path('feedback/', FeedBackView.as_view(), name="add_product"),
+    path('recommendations/<int:user_id>', ProductRecommendationView.as_view(), name='product-recommendations'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

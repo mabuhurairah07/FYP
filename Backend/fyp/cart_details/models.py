@@ -8,3 +8,4 @@ class Cart(models.Model):
     quantity = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)
+    panel = models.IntegerField(default=1)

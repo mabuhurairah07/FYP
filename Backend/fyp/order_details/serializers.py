@@ -21,20 +21,17 @@ class AddOrderSerializer(serializers.Serializer):
     address = serializers.CharField()
     firstname = serializers.CharField()
     lastname = serializers.CharField()
+    o_panel = serializers.IntegerField()
     if payment_type == 'Stripe':
         card_number = serializers.IntegerField()
         exp_month = serializers.IntegerField()
         exp_year = serializers.IntegerField()
         cvc = serializers.IntegerField()
 
-class UpdateOrderSerializer(serializers.Serializer):
-    order_id = serializers.IntegerField()
-    payment_type = serializers.CharField()
-
 class ViewOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ['payment_type', 'total_bill', 'bill_payed', 'discount']
+        fields = ['payment_type', 'total_bill', 'bill_payed', 'discount', 'o_panel']
 
 class UpdateStatusSerializer(serializers.ModelSerializer):
     class Meta:
