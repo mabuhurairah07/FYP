@@ -11,11 +11,13 @@ urlpatterns = [
     path('admin_signup/', AdminSignupView.as_view(), name='Admin Signup'),
     path('all_users/', TotalUsersView.as_view(), name='Total_users'),
     path('admin/<int:id>/', AdminDetailsView.as_view(), name='AdminDetails'),
+    path('user/<int:id>', UserDetailsView.as_view(), name='UserDetails'),
     path('forget_password/', ForgotPasswordView.as_view(), name='Forgot_Password'),
     path('validate/', CheckCodeView.as_view(), name='Validate'),
     path('update_password/<id>', UpdatePasswordView.as_view(), name='update'),
     path('dashboard/<id>', DashboardView.as_view(), name='dashboard'),
     path('sellerdashboard/<id>', SellerDashboardView.as_view(), name='seller_dashboard'),
     path('customer/<id>', UserDetailsView.as_view(), name='customer'),
+    path('sales/<id>', SellerSalesView.as_view(), name='sales'),
     
 ]

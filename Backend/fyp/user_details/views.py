@@ -5,6 +5,7 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import *
 from order_details.models import *
+from order_details.serializers import *
 from django.utils import timezone
 import random
 import string
@@ -441,3 +442,66 @@ class UpdatePasswordView(APIView):
                     'error': True,
                     'msg': 'Please Enter A Valid Password'
                 }, status=status.HTTP_404_NOT_FOUND)
+            
+class SellerSalesView(APIView):
+    def get(self, request, id):
+            current_month = timezone.now().month
+            current_year = timezone.now().year
+            current_date = timezone.now().date()
+            user = UserDetails.objects.get(id=id, is_seller=True)
+            if user is None:
+                return Response({
+                'error' : True,
+                'data' : 'User Not Found'
+            })
+            else:
+                order = OrderDetails.objects.filter(product__user_data__id=id)
+                if order is not None:
+                    serializer = OrderDetailsSerializer(order, many=True)
+                    return Response({
+                        'data' : serializer.data,
+                        'error' : False,
+                    })
+                return Response({
+                    'error' : True,
+                    'msg' : 'No info Found'
+                })
+            
+class UserDetailsView(APIView):
+    def get(self, request, id):
+        user = UserDetails.objects.filter(id=id)
+        if user is not None:
+            serializer = UserDetailsSerializer(user, many=True)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })
+    
+    def post(self,request, id):
+        user = UserDetails.objects.get(id=id)
+        created_at = user.created_at
+        if user is not None:
+            name = request.data['username']
+            phone_no = request.data['phone_no']
+            email = request.data['email']
+            address = request.data['address']
+            user.username = name
+            user.phone_no = phone_no
+            user.email = email
+            user.address = address
+            user.updated_at = timezone.now()
+            user.created_at = created_at
+            user.save()
+            serializer = UserDetailsSerializer(user)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })

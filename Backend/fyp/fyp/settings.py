@@ -147,6 +147,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://lcalhosto:3001',
     'http://lcalhosto:3002',
+    'http://lcalhosto:3003',
+    'http://lcalhosto:3004',
 
 ]
 

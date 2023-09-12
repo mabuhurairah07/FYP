@@ -11,6 +11,11 @@ class AdminDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
         fields = ['id','username', 'email', 'phone_no']
+
+class UserDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDetails
+        fields = ['id','username', 'email', 'phone_no', 'address']
         
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

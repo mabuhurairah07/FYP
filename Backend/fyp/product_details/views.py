@@ -10,7 +10,8 @@ from .models import *
 from user_details.models import UserDetails
 import pandas as pd
 import os
-from .recommendation import ProductRecommender
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 
@@ -428,18 +429,40 @@ class FeedBackView(APIView):
                 'error' : True
             })
     
-class ProductRecommendationView(APIView):
+class RecommendationView(APIView):
     def get(self, request, user_id):
-        # Get user's past feedback
-        user_feedback = Feedback.objects.filter(user_id=user_id)
-        user_feedback_df = pd.DataFrame(list(user_feedback.values()))
-        
-        # Initialize the recommender with user feedback data
-        recommender = ProductRecommender(user_feedback_df)
-        
-        # Get product recommendations for the user (example: top 5)
-        recommended_products = recommender.get_recommendations(user_id)
-        
-        return Response({'recommended_products': recommended_products})
+        feedback_data = Feedback.objects.all()
+
+        feedback_df = pd.DataFrame(list(feedback_data.values()))
+
+        # Create a user-item matrix (pivot table)
+        user_item_matrix = feedback_df.pivot_table(index='user_id', columns='product_id', values='stars')
+
+        # Fill missing values with 0
+        user_item_matrix = user_item_matrix.fillna(0)
+
+        # Calculate cosine similarity between products
+        cosine_sim = cosine_similarity(user_item_matrix.T)
+
+        # Create a DataFrame to store product similarity scores
+        product_similarity_df = pd.DataFrame(cosine_sim, index=user_item_matrix.columns, columns=user_item_matrix.columns)
+
+        # Get the product IDs rated by the user
+        user_rated_products = feedback_df[feedback_df['user_id'] == user_id]['product_id']
+
+        # Initialize a dictionary to store recommendations
+        recommendations = {}
+
+        # Iterate through the products rated by the user
+        for product_id in user_rated_products:
+            similar_products = product_similarity_df[product_id].sort_values(ascending=False) 
+            similar_products = similar_products[~similar_products.index.isin(user_rated_products)]
+            if not similar_products.empty:
+                top_similar_product = similar_products.index[0]
+                recommendations[product_id] = top_similar_product
+            else:
+                recommendations[product_id] = None
+
+        return Response(recommendations, status=status.HTTP_200_OK)
 
     

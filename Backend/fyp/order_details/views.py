@@ -71,6 +71,7 @@ class OrderView(APIView):
     #             session_id = session.id
     #             request.session['id'] = session_id
         if serializer.is_valid():
+            print(request.data)
             user_id = serializer.validated_data['user_id']
             o_panel = serializer.validated_data['o_panel']
             payment = request.data['payment_type']
@@ -79,6 +80,11 @@ class OrderView(APIView):
                 exp_month = request.data['exp_month']
                 exp_year = request.data['exp_year']
                 cvc = request.data['cvc']
+            if card_number is None or exp_month is None or  cvc is None or exp_year is None:
+                    return Response({
+                        'msg' : 'Please Enter Valid Card Details',
+                        'error' : True
+                    })
             address = request.data['address']
             city = request.data['city']
             state = request.data['state']
@@ -113,7 +119,7 @@ class OrderView(APIView):
 
                         # Continue with the payment process using the test token
                         payment_intent = stripe.PaymentIntent.create(
-                            amount=int(total_bill),
+                            amount=int(total_bill * 100),
                             currency="usd",
                             payment_method=payment_method.id,  # Use the PaymentMethod ID
                             confirm=True,
@@ -354,6 +360,7 @@ class B2BOrderView(APIView):
             cart = Cart.objects.filter(user_data=user_data)
             total = Decimal('0')
             discount = Decimal('0')
+            
             # print('Into ser')
             if cart.exists():
                 # print('into if')
@@ -365,6 +372,7 @@ class B2BOrderView(APIView):
                 
                 shipping = Decimal('500')
                 total_bill = total + shipping
+                # percent = (total_bill * 100)
                 if payment == 'Stripe':
                     try:
                         # Use a test token instead of card details
@@ -377,7 +385,7 @@ class B2BOrderView(APIView):
 
                         # Continue with the payment process using the test token
                         payment_intent = stripe.PaymentIntent.create(
-                            amount=int(total_bill),
+                            amount=int(total_bill * 100),
                             currency="usd",
                             payment_method=payment_method.id,  # Use the PaymentMethod ID
                             confirm=True,
