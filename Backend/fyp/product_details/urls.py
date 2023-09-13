@@ -12,6 +12,7 @@ urlpatterns = [
     path('seller_products/<id>', SellerProductDetailsView.as_view(), name="seller_products"),
     path('delete_wishlist/', DeleteWishlistView.as_view(), name="Wishlist_delete"),
     path('compare/', AddCompareView.as_view(), name="Compare"),
+    path('delete_product/', DeleteProductView.as_view(), name="Delete"),
     path('compare/<id>', AddCompareView.as_view(), name="Compare_details"),
     path('delete_compare/', DeleteCompareView.as_view(), name="Delete_compare"),
     path('add_category/', AddCategoryView.as_view(), name="add_Category"),

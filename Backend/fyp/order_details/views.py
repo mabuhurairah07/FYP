@@ -260,6 +260,7 @@ class UpdateStatusView(APIView):
             status = request.data['o_status']
             order = Order.objects.get(o_id=order_id)
             order.o_status = status
+            order.bill_payed = order.total_bill
             order.save()
             return Response({
                 'data' : serializer.data,

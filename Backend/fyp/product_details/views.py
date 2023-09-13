@@ -12,6 +12,7 @@ import pandas as pd
 import os
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+import random
 
 
 
@@ -407,6 +408,7 @@ class SellerProductDetailsView(APIView):
 class FeedBackView(APIView):
 
     def post(self, request):
+        print(request.data)
         serializer = FeedBackSerializer(data=request.data)
         if serializer.is_valid():
             product = request.data['product']
@@ -431,7 +433,13 @@ class FeedBackView(APIView):
     
 class RecommendationView(APIView):
     def get(self, request, user_id):
+        # Fetch all feedback data
         feedback_data = Feedback.objects.all()
+
+        # If there is no feedback data, recommend a random product
+        if not feedback_data.exists():
+            random_product = Product.objects.order_by('?').first()
+            return Response({'recommendation': random_product.p_id}, status=status.HTTP_200_OK)
 
         feedback_df = pd.DataFrame(list(feedback_data.values()))
 
@@ -453,16 +461,62 @@ class RecommendationView(APIView):
         # Initialize a dictionary to store recommendations
         recommendations = {}
 
+        # Initialize a list to store recommended products
+        recommended_products = []
+
+        # Create a dictionary to map product IDs to their index in the product_similarity_df
+        product_id_to_index = {product_id: i for i, product_id in enumerate(product_similarity_df.index)}
+
         # Iterate through the products rated by the user
         for product_id in user_rated_products:
-            similar_products = product_similarity_df[product_id].sort_values(ascending=False) 
-            similar_products = similar_products[~similar_products.index.isin(user_rated_products)]
-            if not similar_products.empty:
-                top_similar_product = similar_products.index[0]
-                recommendations[product_id] = top_similar_product
-            else:
-                recommendations[product_id] = None
+            try:
+                # Get the category of the user's rated product
+                user_rated_product = Product.objects.get(p_id=product_id)
 
-        return Response(recommendations, status=status.HTTP_200_OK)
+                # Filter products by category
+                similar_products = product_similarity_df.loc[product_id].sort_values(ascending=False)
+
+                # Exclude products already rated by the user
+                similar_products = similar_products[~similar_products.index.isin(user_rated_products)]
+
+                # Check if there are similar products available
+                if not similar_products.empty:
+                    top_similar_product_id = similar_products.index[0]
+                    recommendations[product_id] = top_similar_product_id
+                    recommended_products.append(top_similar_product_id)
+                else:
+                    # If there are no similar products, recommend a random product not already rated
+                    random_product = Product.objects.exclude(p_id=product_id).exclude(p_id__in=recommended_products).order_by('?').first()
+                    recommendations[product_id] = random_product.p_id
+                    recommended_products.append(random_product.p_id)
+            except Product.DoesNotExist:
+                # Handle the case where the product doesn't exist
+                recommendations[product_id] = None
+            if recommended_products:
+                for product_id in recommended_products:
+                    try:
+                        product = Product.objects.get(p_id=product_id)
+                        # Now, 'product' contains the Product object for the recommended product
+                        # You can apply your logic to 'product' here
+                        serializer = ProductSerializer(product)
+                        # Rest of your logic here
+                    except Product.DoesNotExist:
+                        # Handle the case where the product doesn't exist
+                        pass
+
+
+                return Response({'data' : serializer.data}, status=status.HTTP_200_OK)
+
+class DeleteProductView(APIView):
+
+    def post(self, request):
+        serializer = DProductSerializer(data=request.data)
+        if serializer.is_valid():
+            print(request.data['p_id'])
+            product = Product.objects.get(p_id=request.data['p_id'])
+            product.delete()
+            return Response({'error': False, 'msg': 'Product deleted successfully.'}, status=status.HTTP_200_OK)
+        return Response({'error': True, 'msg': 'Product not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 
     

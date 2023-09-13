@@ -203,6 +203,12 @@ class AdminDetailsView(APIView):
             name = request.data['username']
             phone_no = request.data['phone_no']
             email = request.data['email']
+            check = UserDetails.objects.get(email=email)
+            phoneCheck = UserDetails.objects.get(phone_no=phone_no)
+            if check or phoneCheck:
+                return Response({
+                    'data'  : 'There is already a user with same email'
+                })
             admin.username = name
             admin.phone_no = phone_no
             admin.email = email
@@ -368,6 +374,7 @@ class ForgotPasswordView(APIView):
         serializer = ForgotPasswordSerializer(data=request.data)
         if serializer.is_valid():
             try:
+                print(request.data)
                 user = UserDetails.objects.get(email=request.data['email'])
             except UserDetails.DoesNotExist:
                 return Response({
@@ -489,6 +496,12 @@ class UserDetailsView(APIView):
             phone_no = request.data['phone_no']
             email = request.data['email']
             address = request.data['address']
+            check = UserDetails.objects.get(email=email)
+            phoneCheck = UserDetails.objects.get(phone_no=phone_no)
+            if check or phoneCheck:
+                return Response({
+                    'data'  : 'There is already a user with same email'
+                })
             user.username = name
             user.phone_no = phone_no
             user.email = email
@@ -505,3 +518,59 @@ class UserDetailsView(APIView):
             'data' : serializer.errors,
             'error' : True
         })
+
+class DeleteCustomerView(APIView):
+
+    def post(self, request):
+        serializer = DCustomerSerializer(data=request.data)
+        if serializer.is_valid():
+            print(request.data['id'])
+            user = UserDetails.objects.get(id=request.data['id'])
+            user.delete()
+            return Response({'error': False, 'msg': 'User deleted successfully.'}, status=status.HTTP_200_OK)
+        return Response({'error': True, 'msg': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class SellerDetailsView(APIView):
+    def get(self, request, id):
+        seller = UserDetails.objects.filter(id=id, is_seller=True)
+        if seller is not None:
+            serializer = AdminDetailsSerializer(seller, many=True)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })
+    
+    def post(self,request, id):
+        seller = UserDetails.objects.get(id=id, is_seller=True)
+        created_at = seller.created_at
+        if seller is not None:
+            name = request.data['username']
+            phone_no = request.data['phone_no']
+            email = request.data['email']
+            check = UserDetails.objects.get(email=email)
+            phoneCheck = UserDetails.objects.get(phone_no=phone_no)
+            if check or phoneCheck:
+                return Response({
+                    'data'  : 'There is already a user with same email'
+                })
+            seller.username = name
+            seller.phone_no = phone_no
+            seller.email = email
+            seller.updated_at = timezone.now()
+            seller.created_at = created_at
+            seller.save()
+            serializer = AdminDetailsSerializer(seller)
+            return Response({
+                'data' : serializer.data,
+                'error' : False
+            })
+        return Response({
+            'data' : serializer.errors,
+            'error' : True
+        })
+
+

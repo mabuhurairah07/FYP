@@ -81,4 +81,7 @@ class UpdatePasswordSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDetails
         fields = ['password']
+    
+class DCustomerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
 

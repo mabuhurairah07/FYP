@@ -134,5 +134,8 @@ class VariationSerializer(serializers.ModelSerializer):
 
 class FeedBackSerializer(serializers.Serializer):
      product = serializers.CharField()
-     user = serializers.CharField()
-     stars = serializers.CharField()
+     user = serializers.IntegerField()
+     stars = serializers.IntegerField()
+    
+class DProductSerializer(serializers.Serializer):
+     p_id = serializers.IntegerField()
