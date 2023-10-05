@@ -15,6 +15,11 @@ from datetime import datetime
 
 from .serializers import *
 
+def generate_random_code(length):
+    characters = string.digits  # Use digits for a numeric code
+    code = ''.join(random.choice(characters) for _ in range(length))
+    return code 
+
 class UserDetailsView(APIView):
     def get(self, request, id):
         user = UserDetails.objects.filter(id=id)
@@ -65,12 +70,28 @@ class SignupView(APIView):
                 username = request.data['username'],
                 email = request.data['email'],
                 phone_no = request.data['phone_no'],
+                verified = 0,
                 created_at = timezone.now(),
                 updated_at = timezone.now()
             )
             user.set_password(request.data['password'])
             user.save()
-            return Response({'data': serializer.data,'error' : False, 'msg' : 'Account Created Successfully'},status.HTTP_201_CREATED)
+            
+            reset_code = generate_random_code(6)
+            otp = OTP.objects.create(
+                otp = reset_code,
+                user = user
+            )
+            otp.save()
+
+            subject = "Password Reset Code"
+            message = f"Your password reset code is: {reset_code}"
+            from_email = "mabuhurairah07@gmail.com"  # Replace with your email
+            recipient_list = [user.email]
+
+            send_mail(subject, message, from_email, recipient_list)
+
+            return Response({'data': serializer.data,'code' : reset_code, 'error' : False, 'msg' : 'Account Created Successfully'},status.HTTP_201_CREATED)
         else:
            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST, {'error' : True, 'msg' : 'Error Creating Account'})
         
@@ -87,13 +108,15 @@ class LoginView(APIView):
                 return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, User or Password Incorrect'},status.HTTP_400_BAD_REQUEST)
             else:
                 user_data_fetch = UserDetails.objects.get(username=username)
+                if user_data_fetch.verified == 1:
                 # serializer_data = UserSerializer(user_data_fetch)
-                response_data = {
-                    'id' : user_data_fetch.id,
-                    'username' : user_data_fetch.username,
-                }
-                return Response({ 'data' : response_data , 'error' : False, 'msg' : 'Logged In Successfully'},status.HTTP_201_CREATED)
-
+                    response_data = {
+                        'id' : user_data_fetch.id,
+                        'username' : user_data_fetch.username,
+                    }
+                    return Response({ 'data' : response_data , 'error' : False, 'msg' : 'Logged In Successfully'},status.HTTP_201_CREATED)
+                else:
+                    return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Please Verify your Email'},status.HTTP_201_CREATED)
 class SellerSignupView(APIView):
 
     def post(self, request):
@@ -361,10 +384,7 @@ class SellerDashboardView(APIView):
                     'msg' : 'No info Found'
                 })
             
-def generate_random_code(length):
-    characters = string.digits  # Use digits for a numeric code
-    code = ''.join(random.choice(characters) for _ in range(length))
-    return code  
+ 
 
 
 class ForgotPasswordView(APIView):
@@ -415,15 +435,19 @@ class CheckCodeView(APIView):
             code = request.data['code']
             otp = OTP.objects.get(otp=code)
             # request.session['id'] = otp.user.id
-            if otp:
+            if otp is not None:
                 user_id = otp.user.id
+                user = UserDetails.objects.get(id = user_id)
+                user.verified = 1
+                user.save()
                 otp.delete()
                 return Response({
                     'data' : 'Validated',
                     'id' : user_id,
                     'error' : False,
                 })
-            else:
+            elif otp is None:
+
                 return Response({
                     'data' : 'Invalid Code Please Enter Right Code',
                     'error' : True
