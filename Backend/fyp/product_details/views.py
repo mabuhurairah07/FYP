@@ -439,10 +439,11 @@ class RecommendationView(APIView):
         # If there is no feedback data, recommend a random product
         if not feedback_data.exists():
             random_product = Product.objects.order_by('?').first()
-            return Response({'recommendation': random_product.p_id}, status=status.HTTP_200_OK)
+            reSerializer = ProductSerializer(random_product)
+            return Response({'recommendation': reSerializer.data}, status=status.HTTP_200_OK)
 
         feedback_df = pd.DataFrame(list(feedback_data.values()))
-
+        
         # Create a user-item matrix (pivot table)
         user_item_matrix = feedback_df.pivot_table(index='user_id', columns='product_id', values='stars')
 
@@ -466,18 +467,23 @@ class RecommendationView(APIView):
 
         # Create a dictionary to map product IDs to their index in the product_similarity_df
         product_id_to_index = {product_id: i for i, product_id in enumerate(product_similarity_df.index)}
-
+        
         # Iterate through the products rated by the user
         for product_id in user_rated_products:
+            
             try:
                 # Get the category of the user's rated product
                 user_rated_product = Product.objects.get(p_id=product_id)
+                
 
                 # Filter products by category
                 similar_products = product_similarity_df.loc[product_id].sort_values(ascending=False)
 
+                
+
                 # Exclude products already rated by the user
                 similar_products = similar_products[~similar_products.index.isin(user_rated_products)]
+                
 
                 # Check if there are similar products available
                 if not similar_products.empty:
@@ -500,9 +506,10 @@ class RecommendationView(APIView):
                         # You can apply your logic to 'product' here
                         serializer = ProductSerializer(product)
                         # Rest of your logic here
+                        return Response({'data' : serializer.data}, status=status.HTTP_200_OK)
                     except Product.DoesNotExist:
                         # Handle the case where the product doesn't exist
-                        pass
+                        return Response({'data' : serializer.data}, status=status.HTTP_200_OK)
 
 
                 return Response({'data' : serializer.data}, status=status.HTTP_200_OK)

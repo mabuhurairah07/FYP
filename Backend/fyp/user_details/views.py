@@ -105,7 +105,7 @@ class LoginView(APIView):
             password = request.data['password']
             user = authenticate(username=username, password=password)
             if user is None:
-                return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, User or Password Incorrect'},status.HTTP_400_BAD_REQUEST)
+                return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, User or Password Incorrect'},status.HTTP_201_CREATED)
             else:
                 user_data_fetch = UserDetails.objects.get(username=username)
                 if user_data_fetch.verified == 1:
@@ -148,11 +148,11 @@ class SellerLoginView(APIView):
             user = authenticate(username=username, password=password)
             seller = True
             if user is None:
-                return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_400_BAD_REQUEST)
+                return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_HTTP_201_CREATED)
             elif user is not None:
                 user_data_fetch = UserDetails.objects.get(username=username, is_seller=seller)
                 if user_data_fetch is None:
-                   return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_400_BAD_REQUEST) 
+                   return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_201_CREATED) 
                 else :
                     response_data = {
                         'id' : user_data_fetch.id,
@@ -193,11 +193,11 @@ class AdminLoginView(APIView):
             password = request.data['password']
             user = authenticate(username=username, password=password)
             if user is None:
-                return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_400_BAD_REQUEST)
+                return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_201_CREATED)
             elif user is not None:
                 user_data_fetch = UserDetails.objects.get(username=username)
                 if user_data_fetch is None:
-                   return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_400_BAD_REQUEST) 
+                   return Response({'data' : serializer.errors, 'error' : True, 'msg' : 'Cannot Login, Username or Password Incorrect'},status.HTTP_201_CREATED) 
                 else :
                     response_data = {
                         'id' : user_data_fetch.id,

@@ -80,11 +80,11 @@ class OrderView(APIView):
                 exp_month = request.data['exp_month']
                 exp_year = request.data['exp_year']
                 cvc = request.data['cvc']
-            if card_number is None or exp_month is None or  cvc is None or exp_year is None:
-                    return Response({
-                        'msg' : 'Please Enter Valid Card Details',
-                        'error' : True
-                    })
+                if card_number is None or exp_month is None or  cvc is None or exp_year is None:
+                        return Response({
+                            'msg' : 'Please Enter Valid Card Details',
+                            'error' : True
+                        })
             address = request.data['address']
             city = request.data['city']
             state = request.data['state']
