@@ -86,7 +86,7 @@ class SignupView(APIView):
 
             subject = "Password Reset Code"
             message = f"Your password reset code is: {reset_code}"
-            from_email = "mabuhurairah07@gmail.com"  # Replace with your email
+            from_email = "EasyBay <mabuhurairah07@gmail.com>"  # Replace with your email
             recipient_list = [user.email]
 
             send_mail(subject, message, from_email, recipient_list)
@@ -411,7 +411,7 @@ class ForgotPasswordView(APIView):
 
             subject = "Password Reset Code"
             message = f"Your password reset code is: {reset_code}"
-            from_email = "mabuhurairah07@gmail.com"  # Replace with your email
+            from_email = "EasyBay <mabuhurairah07@gmail.com>"  # Replace with your email
             recipient_list = [user.email]
 
             send_mail(subject, message, from_email, recipient_list)

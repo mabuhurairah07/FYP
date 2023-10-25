@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-)3&44yv85a#adx1i!bsg$tuo06d@&_@et#2(0)u&hp4gl!9$a2
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '10.211.0.172'
+    '10.211.0.172',
+    '127.0.0.1'
 ]
 
 
@@ -166,6 +167,9 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mabuhurairah07@gmail.com'
 EMAIL_HOST_PASSWORD = 'ivnezcszesnmouss'
+DEFAULT_FROM_EMAIL = 'EasyBay <mabuhurairah07@gmail.com>'
+
+
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_NAME = 'my_session'
