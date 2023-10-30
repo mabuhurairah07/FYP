@@ -27,6 +27,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     p_status = models.SmallIntegerField(default=1)
+    rating = models.IntegerField(default=5)
 
 class Variation(models.Model):
     v_id = models.AutoField(primary_key=True)

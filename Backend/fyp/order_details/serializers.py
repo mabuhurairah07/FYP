@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from product_details.serializers import ProductSerializer
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,6 +8,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class OrderDetailsSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
     class Meta:
         model = OrderDetails
         fields = "__all__"
@@ -25,8 +27,8 @@ class AddOrderSerializer(serializers.Serializer):
     state = serializers.CharField()
     zip = serializers.CharField()
     address = serializers.CharField()
+    p_address = serializers.CharField()
     firstname = serializers.CharField()
-    lastname = serializers.CharField()
     o_panel = serializers.IntegerField()
     if payment_type == 'Stripe':
         card_number = serializers.IntegerField()

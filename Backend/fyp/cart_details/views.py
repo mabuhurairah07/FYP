@@ -150,3 +150,12 @@ class DeleteCartView(APIView):
             cart.delete()
             return Response({'error': False, 'msg': 'Cart item deleted successfully.'}, status=status.HTTP_200_OK)
         return Response({'error': True, 'msg': 'Cart item not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class CartCountView(APIView):
+    def get(self, request, id):
+        user = UserDetails.objects.get(id=id)
+        cart_instance = Cart.objects.filter(user_data=user, panel=1)
+        if cart_instance is not None:
+            count = cart_instance.count()
+            return Response({'data' : count, 'error' : False}, status.HTTP_202_ACCEPTED)
+        return Response({'error' : True, 'msg' : 'Cannot show count'}, status.HTTP_204_NO_CONTENT)

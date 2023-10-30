@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import RegexValidator
+
 
 # Create your models here.
 class Order(models.Model):
@@ -27,10 +29,10 @@ class OrderDetails(models.Model):
 class ShipmentDetails(models.Model):
     s_id = models.AutoField(primary_key=True)
     address = models.CharField(max_length=1000)
+    p_address = models.CharField(max_length=1000, default=None)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     zip = models.CharField(max_length=100)
     user_id = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
     order = models.ForeignKey("order_details.Order", on_delete=models.CASCADE)

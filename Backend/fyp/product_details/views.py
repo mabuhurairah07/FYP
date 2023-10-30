@@ -242,38 +242,103 @@ class DeleteWishlistView(APIView):
              
 class AddCompareView(APIView):
     
-    def post(self, request):
-        serializer = AddCompareSerializer(data=request.data)
-        if serializer.is_valid():
-            product_id = request.data['product_id']
-            user_id = request.data['user_id']
-            if not Product.objects.filter(p_id = product_id) or not UserDetails.objects.filter(id = user_id):
-                return Response({'msg' : 'Related user or Product not Found', 'error' : True})
-            existing = CompareProducts.objects.filter(user_data = user_id).first()
-            print(CompareProducts.objects.filter(user_data = user_id).first())
-            count = CompareProducts.objects.filter(user_data = user_id).count()
-            product_instance1 = Product.objects.get(p_id = product_id)
-            if count >= 2 :
-                return Response({'msg' : 'Already Two Products In Comparing', 'error' : True})
-            product_val = '' 
-            if existing is not None:
-                product_val = existing.product.p_id
-                product_instance = Product.objects.get(p_id = product_val)
-                cat_id = product_instance.category
-                cat_id1 = product_instance1.category
-                if cat_id != cat_id1:
-                    return Response({'msg' : 'Products Category Must Be Same', 'error' : True})
-            product_serializer = ProductSerializer(product_instance1)
-            user_instance = UserDetails.objects.get(id=user_id)
-            compare, created = CompareProducts.objects.get_or_create(product = product_instance1 , user_data = user_instance)
-            if created:
+    # def post(self, request):
+    #     serializer = AddCompareSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         product_id = request.data['product_id']
+    #         user_id = request.data['user_id']
+    #         if not Product.objects.filter(p_id = product_id) or not UserDetails.objects.filter(id = user_id):
+    #             return Response({'msg' : 'Related user or Product not Found', 'error' : True})
+    #         existing = CompareProducts.objects.filter(user_data = user_id).first()
+    #         print(CompareProducts.objects.filter(user_data = user_id).first())
+    #         count = CompareProducts.objects.filter(user_data = user_id).count()
+    #         product_instance1 = Product.objects.get(p_id = product_id)
+    #         if count >= 2 :
+    #             return Response({'msg' : 'Already Two Products In Comparing', 'error' : True})
+    #         product_val = '' 
+    #         if existing is not None:
+    #             product_val = existing.product.p_id
+    #             product_instance = Product.objects.get(p_id = product_val)
+    #             cat_id = product_instance.category
+    #             cat_id1 = product_instance1.category
+    #             if cat_id != cat_id1:
+    #                 return Response({'msg' : 'Products Category Must Be Same', 'error' : True})
+    #         product_serializer = ProductSerializer(product_instance1)
+    #         user_instance = UserDetails.objects.get(id=user_id)
+    #         compare, created = CompareProducts.objects.get_or_create(product = product_instance1 , user_data = user_instance)
+    #         if created:
                 
-                return Response({'data' : product_serializer.data, 'error' : False, 'msg' : 'Product Added in Compare'}, status.HTTP_202_ACCEPTED)
-            elif compare:
-                return Response({'data' : product_serializer.data, 'error' : True, 'msg' : 'Product Already in Compare'}, status.HTTP_207_MULTI_STATUS)
+    #             return Response({'data' : product_serializer.data, 'error' : False, 'msg' : 'Product Added in Compare'}, status.HTTP_202_ACCEPTED)
+    #         elif compare:
+    #             return Response({'data' : product_serializer.data, 'error' : True, 'msg' : 'Product Already in Compare'}, status.HTTP_207_MULTI_STATUS)
             
-        return Response({ 'data' : serializer.errors ,'error' : True, 'msg' : 'Cannot Add Products To Compare'}, status.HTTP_204_NO_CONTENT)
+    #     return Response({ 'data' : serializer.errors ,'error' : True, 'msg' : 'Cannot Add Products To Compare'}, status.HTTP_204_NO_CONTENT)
     
+    def post(self, request):
+        # Assuming you receive p_id and p_id1 in request.data
+        p_id = request.data.get('p_id')
+        p_id1 = request.data.get('p_id1')
+
+        if p_id is None or p_id1 is None:
+            return Response({
+                'error': True,
+                'msg': 'p_id and p_id1 are required in request data'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the products exist in the Product model
+        products = Product.objects.filter(p_id__in=[p_id, p_id1])
+
+        if not products:
+            return Response({
+                'error': True,
+                'msg': 'The specified products do not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        data_list = []
+        data_cat = []
+
+        for product in products:
+            cat = product.category.cat_name
+
+            if cat == 'LCD':
+                lcd = LCD.objects.get(product=product)
+                lcd_serializer = LCDSerializer(lcd)
+                data_list.append(lcd_serializer.data)
+                if 'LCD' not in data_cat:
+                    data_cat.append('LCD')
+            elif cat == 'AC':
+                ac = AC.objects.get(product=product)
+                ac_serializer = ACSerializer(ac)
+                data_list.append(ac_serializer.data)
+                if 'AC' not in data_cat:
+                    data_cat.append('AC')
+            elif cat == 'Laptops':
+                laptops = Laptops.objects.get(product=product)
+                laptop_serializer = LaptopSerializer(laptops)
+                data_list.append(laptop_serializer.data)
+                if 'Laptops' not in data_cat:
+                    data_cat.append('Laptops')
+            elif cat == 'Phones':
+                phones = MobilePhones.objects.get(product=product)
+                phone_serializer = MobileSerializer(phones)
+                data_list.append(phone_serializer.data)
+                if 'Phones' not in data_cat:
+                    data_cat.append('Phones')
+
+        serializer = ProductSerializer(products, many=True)
+
+        data = {
+            'details': data_list,
+            'product': serializer.data,
+            'category': data_cat
+        }
+
+        return Response({
+            'data': data,
+            'msg': 'Description retrieved successfully',
+            'error': False
+        }, status=status.HTTP_200_OK)
+
     def get(self,request, id):
         compare = CompareProducts.objects.filter(user_data = id)
         # count = CompareProducts.objects.filter(user_data = id).count()
@@ -422,6 +487,14 @@ class FeedBackView(APIView):
                 user = userData
             )
             feedback.save()
+            feed = Feedback.objects.filter(product=product)
+            count = feed.count()
+            total = 0
+            for rate in feed:
+                total += rate.stars
+            avg = int(total / count)
+            productData.rating = avg
+            productData.save()
             return Response({
                 'msg' : 'Thanks for the Feedback',
                 'error' : False

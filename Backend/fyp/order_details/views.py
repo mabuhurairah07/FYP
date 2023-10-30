@@ -33,7 +33,7 @@ class OrderView(APIView):
 
     def post(self, request):
         stripe.api_key = 'sk_test_51MpzUtLoFp1QEKARGxkOuCCDODAxX9TSy8VsNPZgN9bpFdragt0dy5yi2Lw7KXmxOoYUSXeRInCutS22rRnAMC99002om5S2rq'
-        # print(request.data)
+        print(request.data)
         serializer = AddOrderSerializer(data=request.data)
         # print(serializer)
     #     if serializer.is_valid():
@@ -86,11 +86,11 @@ class OrderView(APIView):
                             'error' : True
                         })
             address = request.data['address']
+            p_address = request.data['address']
             city = request.data['city']
             state = request.data['state']
             zip = request.data['zip']
             firstname = request.data['firstname']
-            lastname = request.data['lastname']
             user = UserDetails.objects.get(id=user_id)
             user_data = get_object_or_404(UserDetails, id=user_id)
             cart = Cart.objects.filter(user_data=user_data)
@@ -143,7 +143,7 @@ class OrderView(APIView):
                             state = state,
                             zip = zip,
                             user_id = user,
-                            last_name=lastname,
+                            p_address=p_address,
                             first_name=firstname,
                             order = order
                         )
@@ -196,12 +196,12 @@ class OrderView(APIView):
                     order.save()
                     shipment = ShipmentDetails.objects.create(
                         address = address,
+                        p_address = p_address,
                         city = city,
                         state = state,
                         zip = zip,
                         user_id = user,
-                        last_name=lastname,
-                        first_name=firstname,\
+                        first_name=firstname,
                         order = order
                     )
                     shipment.save()
@@ -502,6 +502,20 @@ class B2BOrderView(APIView):
             'error': True,
             'msg': 'Cannot Create Order'
         }, status=status.HTTP_204_NO_CONTENT)
-    
+     
+
+class OrderDetailsView(APIView):
+    def get(self, request, id):
+        orderDetails = OrderDetails.objects.filter(order__user_id__id=id)
+        if orderDetails:
+            serializer = OrderDetailsSerializer(orderDetails, many=True)
+            return Response({
+                'data': serializer.data,
+                'error': False,
+            })
+        return Response({
+            'error': True,
+            'msg': 'There is an error fetching data',
+        }, status=status.HTTP_404_NOT_FOUND)
 
 
