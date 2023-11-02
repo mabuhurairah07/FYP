@@ -58,7 +58,7 @@ class AddToCartB2BView(APIView):
                 return Response({'error' : True, 'data' : serializer.data, 'msg' : 'Login to Your Account'}, status.HTTP_204_NO_CONTENT)
             existing_cart_items = Cart.objects.filter(user_data=user_id, product=p_id, panel = panel)
             if existing_cart_items.exists():
-                return Response({'message': 'Product already in cart.', 'error' : True}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Product already in cart.', 'error' : True}, status=status.HTTP_201_CREATED)
             user = UserDetails.objects.get(id=user_id)
             product = Product.objects.get(p_id=p_id)
             cart = Cart.objects.create(
@@ -71,7 +71,7 @@ class AddToCartB2BView(APIView):
                 )
             cart.save()
             return Response({'data': serializer.data,'error' : False, 'msg' : 'Product Added Successfully'},status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_201_CREATED)
     
     
 class CartView(APIView):
@@ -100,12 +100,12 @@ class CartView(APIView):
             try:
                 cart = Cart.objects.get(user_data=user, product=product, panel=panel)
             except Cart.DoesNotExist:
-                return Response({'error': True, 'msg': 'Cart item not found.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': True, 'msg': 'Cart item not found.'}, status=status.HTTP_201_CREATED)
             cart.quantity = quantity
             cart.updated_at = timezone.now()
             cart.save()
             return Response({'data': serializer.data,'error' : False, 'msg' : 'Product Updated Successfully'},status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        return Response(serializer.errors, status=status.HTTP_201_CREATED)  
     
 class UpdateCartB2BView(APIView):
     def get(self, request, id):

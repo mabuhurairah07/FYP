@@ -26,6 +26,7 @@ class OrderDetails(models.Model):
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)
 
+
 class ShipmentDetails(models.Model):
     s_id = models.AutoField(primary_key=True)
     address = models.CharField(max_length=1000)
@@ -34,4 +35,5 @@ class ShipmentDetails(models.Model):
     zip = models.CharField(max_length=100)
     user_id = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50, default='')
     order = models.ForeignKey("order_details.Order", on_delete=models.CASCADE)
