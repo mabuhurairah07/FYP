@@ -29,7 +29,6 @@ class OrderDetails(models.Model):
 class ShipmentDetails(models.Model):
     s_id = models.AutoField(primary_key=True)
     address = models.CharField(max_length=1000)
-    p_address = models.CharField(max_length=1000, default=None)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     zip = models.CharField(max_length=100)

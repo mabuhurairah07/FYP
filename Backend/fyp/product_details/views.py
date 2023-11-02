@@ -388,7 +388,6 @@ class AddCompareView(APIView):
                     data_list.append(phoneserializer.data)
                     if len(data_cat) == 0:
                         data_cat.append(cat)
-            if data_list:
                 data = {
                     'details' : data_list,
                     'product' : serializer.data,
