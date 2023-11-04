@@ -27,7 +27,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     updated_at = models.DateTimeField(auto_now=False, auto_now_add=False)
     p_status = models.SmallIntegerField(default=1)
-    rating = models.IntegerField(default=5)
+    rating = models.DecimalField(max_digits=5, decimal_places=2)
 
 class Variation(models.Model):
     v_id = models.AutoField(primary_key=True)
@@ -85,7 +85,7 @@ class AC(models.Model):
     ac_energy_efficiency = models.IntegerField()
 
 class Feedback(models.Model):
-     stars = models.IntegerField()
+     stars = models.DecimalField(max_digits=5, decimal_places=2)
      user = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
      product = models.ForeignKey("product_details.Product", on_delete=models.CASCADE)
 

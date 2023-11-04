@@ -35,4 +35,5 @@ class ShipmentDetails(models.Model):
     zip = models.CharField(max_length=100)
     user_id = models.ForeignKey("user_details.UserDetails", on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50, default='')
     order = models.ForeignKey("order_details.Order", on_delete=models.CASCADE)

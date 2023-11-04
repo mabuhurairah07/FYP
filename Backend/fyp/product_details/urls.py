@@ -9,6 +9,7 @@ urlpatterns = [
     path('wishlist/', WishlistView.as_view(), name="Wishlist"),
     path('wishlist/<id>', WishlistView.as_view(), name="Wishlist"),
     path('details/<id>', ProductDetailsView.as_view(), name="details"),
+    path('reviews/<id>', UserCountView.as_view(), name="reviews"),
     path('seller_products/<id>', SellerProductDetailsView.as_view(), name="seller_products"),
     path('delete_wishlist/', DeleteWishlistView.as_view(), name="Wishlist_delete"),
     path('compare/', AddCompareView.as_view(), name="Compare"),

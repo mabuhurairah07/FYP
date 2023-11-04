@@ -29,6 +29,7 @@ class AddOrderSerializer(serializers.Serializer):
     address = serializers.CharField()
     p_address = serializers.CharField()
     firstname = serializers.CharField()
+    lastname = serializers.CharField()
     o_panel = serializers.IntegerField()
     if payment_type == 'Stripe':
         card_number = serializers.IntegerField()

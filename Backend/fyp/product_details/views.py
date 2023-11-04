@@ -13,6 +13,7 @@ import os
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 import random
+from decimal import Decimal
 
 
 
@@ -481,6 +482,13 @@ class FeedBackView(APIView):
             user = request.data['user']
             userData = UserDetails.objects.get(id = user)
             stars = request.data['stars']
+            if userData is not None:
+                check = Feedback.objects.filter(user=userData, product = productData)
+                if check:
+                    return Response({
+                        'msg' : 'Product Already Rated',
+                        'error' : True
+                    })
             feedback = Feedback.objects.create(
                 stars = stars,
                 product = productData,
@@ -492,7 +500,7 @@ class FeedBackView(APIView):
             total = 0
             for rate in feed:
                 total += rate.stars
-            avg = int(total / count)
+            avg = total / count
             productData.rating = avg
             productData.save()
             return Response({
@@ -597,6 +605,12 @@ class DeleteProductView(APIView):
             product.delete()
             return Response({'error': False, 'msg': 'Product deleted successfully.'}, status=status.HTTP_200_OK)
         return Response({'error': True, 'msg': 'Product not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+class UserCountView(APIView):
+    def get(self, request,id):
+        product = Product.objects.get(p_id=id)
+        count = Feedback.objects.filter(product=product).count()
+        return Response({'error': False, 'msg': 'Reviews', 'data' : count}, status=status.HTTP_200_OK)
 
 
     

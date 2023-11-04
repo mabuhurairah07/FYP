@@ -91,6 +91,7 @@ class OrderView(APIView):
             state = request.data['state']
             zip = request.data['zip']
             firstname = request.data['firstname']
+            lastname = request.data['lastname']
             user = UserDetails.objects.get(id=user_id)
             user_data = get_object_or_404(UserDetails, id=user_id)
             cart = Cart.objects.filter(user_data=user_data)
@@ -145,6 +146,7 @@ class OrderView(APIView):
                             user_id = user,
                             p_address=p_address,
                             first_name=firstname,
+                            last_name=lastname,
                             order = order
                         )
                         shipment.save()
@@ -202,6 +204,7 @@ class OrderView(APIView):
                         zip = zip,
                         user_id = user,
                         first_name=firstname,
+                        last_name=lastname,
                         order = order
                     )
                     shipment.save()

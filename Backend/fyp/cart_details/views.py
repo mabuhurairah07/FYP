@@ -7,6 +7,7 @@ from .models import Cart
 from user_details.models import UserDetails
 from product_details.models import *
 from .serializers import *
+from decimal import Decimal
 
 class AddToCartView(APIView):
     def post(self, request):
@@ -22,10 +23,10 @@ class AddToCartView(APIView):
             created_at = timezone.now()
             updated_at = timezone.now()
             if not UserDetails.objects.get(id = user_id):
-                return Response({'error' : True, 'data' : serializer.data, 'msg' : 'Login to Your Account'}, status.HTTP_204_NO_CONTENT)
+                return Response({'error' : True, 'data' : serializer.data, 'msg' : 'Login to Your Account'}, status.HTTP_201_CREATED)
             existing_cart_items = Cart.objects.filter(user_data=user_id, product=p_id, panel=panel)
             if existing_cart_items.exists():
-                return Response({'message': 'Product already in cart.', 'error' : True}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error' : True, 'data' : serializer.data,'msg': 'Product already in cart.' }, status=status.HTTP_201_CREATED)
             user = UserDetails.objects.get(id=user_id)
             product = Product.objects.get(p_id=p_id)
             cart = Cart.objects.create(
@@ -159,3 +160,25 @@ class CartCountView(APIView):
             count = cart_instance.count()
             return Response({'data' : count, 'error' : False}, status.HTTP_202_ACCEPTED)
         return Response({'error' : True, 'msg' : 'Cannot show count'}, status.HTTP_204_NO_CONTENT)
+
+class CartTotalView(APIView):
+    def get(self, request,id):
+        user_data = UserDetails.objects.get(id=id)
+        if user_data is None:
+            return Response({'data' : 'User Not Found', 'error' : False}, status.HTTP_202_ACCEPTED)
+        cart = Cart.objects.filter(user_data=user_data)
+        total = Decimal('0')
+        discount = Decimal('0')
+        # print('Into ser')
+        if cart.exists():
+            # print('into if')
+            for product in cart:
+                price = product.product.disc_price
+                quantity = int(product.quantity)
+                total += (price * quantity)
+                discount += Decimal(product.product.p_price - price)
+                
+            shipping = Decimal('500')
+            total_bill = total + shipping
+            return Response({'data' : total_bill, 'error' : False}, status.HTTP_202_ACCEPTED)
+        return Response({'data' : 'No Item in cart', 'error' : False}, status.HTTP_202_ACCEPTED)
