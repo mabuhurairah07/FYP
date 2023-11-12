@@ -21,5 +21,7 @@ urlpatterns = [
     path('sellerdashboard/<id>', SellerDashboardView.as_view(), name='seller_dashboard'),
     path('customer/<id>', UserDetailsView.as_view(), name='customer'),
     path('sales/<id>', SellerSalesView.as_view(), name='sales'),
+    path('recommend/<id>', RecommendationView.as_view(), name='recommend'),
+
     
 ]

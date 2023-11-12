@@ -4,6 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import *
+from cart_details.models import *
+from cart_details.serializers import *
+from product_details.models import *
+from product_details.serializers import *
 from order_details.models import *
 from order_details.serializers import *
 from django.utils import timezone
@@ -11,6 +15,11 @@ import random
 import string
 from django.core.mail import send_mail
 from datetime import datetime
+from django.db.models import Count
+from django.shortcuts import HttpResponse
+from django.views import View
+from math import sqrt
+import numpy as np
 # Create your views here.
 
 from .serializers import *
@@ -596,5 +605,138 @@ class SellerDetailsView(APIView):
             'data' : serializer.errors,
             'error' : True
         })
+
+
+
+def mean_squared_error(predictions, targets):
+    return ((predictions - targets) ** 2).mean()
+
+def gradient_descent(X, y, theta, learning_rate, iterations, lambda_val, max_gradient_value=0.5):
+    m = len(y)
+    for i in range(iterations):
+        predictions = X.dot(theta)
+        errors = predictions - y
+        # Regularized cost function
+        cost = mean_squared_error(predictions, y) + (lambda_val / (2 * m)) * np.sum(theta[1:]**2)
+        print(f"Iteration {i+1}/{iterations}, Cost: {cost}")
+
+        # Regularized gradient with clipping
+        gradient = (X.T.dot(errors) + lambda_val * np.concatenate(([0], theta[1:]))) / m
+        gradient = np.clip(gradient, -max_gradient_value, max_gradient_value)
+
+        theta = theta - learning_rate * gradient
+
+    return theta
+
+def train_and_predict(user):
+    # Extract product fields from Cart, Feedback, and Wishlist
+    cart_products = Cart.objects.filter(user_data=user)
+    feedback_products = Feedback.objects.filter(user=user)
+    wishlist_products = Wishlist.objects.filter(user_data=user)
+
+    # Your existing code to retrieve products
+    # ...
+
+    # Extract relevant data for linear regression
+    product_data = [(product.p_id, product.rating) for product in Product.objects.all()]
+    feedback_data = [(feedback.product.p_id, feedback.stars) for feedback in feedback_products]
+    feed_data = [(feedback.product.p_id, feedback.stars) for feedback in Feedback.objects.all()]
+
+    # If there are feedback products, include them in product_data
+    if feedback_products.exists():
+        product_data += feedback_data
+    else:
+        product_data += feed_data
+
+    # If there are cart products, update X and y
+    if cart_products.exists():
+        cart_data = [(cart_product.product.p_id, 0) for cart_product in cart_products]
+        product_data += cart_data  # Add cart products to product_data
+
+    # If there are wishlist products, update X and y
+    if wishlist_products.exists():
+        wishlist_data = [(wishlist_product.product.p_id, 0) for wishlist_product in wishlist_products]
+        product_data += wishlist_data  # Add wishlist products to product_data
+
+    # Merge data and create a matrix X and target vector y
+    # Convert decimal.Decimal to float in X
+    X = np.array([[1, float(p_id), float(rating)] for p_id, rating in product_data])
+    y = np.array([float(rating) for _, rating in product_data])
+
+    # Normalize ratings to a common scale (optional)
+    y = (y - np.mean(y)) / np.std(y)
+
+    # Initialize theta with small random values
+    theta = np.random.rand(3)
+
+    # Perform gradient descent to learn the parameters
+    learning_rate = 0.02
+    iterations = 1000
+    lambda_val = 0.1
+    theta = gradient_descent(X, y, theta, learning_rate, iterations, lambda_val)
+
+    # Now, use the learned parameters to make predictions for unrated products
+    unrated_products = [p_id for p_id, _ in product_data if p_id not in feed_data]
+
+    # Create a matrix X for unrated products
+    X_unrated = np.array([[1, p_id, 0] for p_id in unrated_products])
+
+    # Make predictions for unrated products
+    predictions = X_unrated.dot(theta)
+
+    # Sort products based on predicted ratings and recommend the top 5
+    recommended_products = sorted(zip(unrated_products, predictions), key=lambda x: x[1], reverse=True)[:5]
+
+    # Extract product IDs from the recommendations
+    recommended_product_ids = [product_id for product_id, _ in recommended_products]
+    data = []
+    
+    for prod in recommended_product_ids:
+        if prod not in data:
+            data.append(prod)
+    
+    return data
+                
+        
+
+class RecommendationView(APIView):
+    def get(self, request, id):
+        try:
+            user = UserDetails.objects.get(id=id)
+        except UserDetails.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+        response_data = train_and_predict(user)
+        print(response_data)
+        products_list = []
+
+        for r in response_data:
+            # Use filter to get products for each p_id
+            products_for_id = Product.objects.filter(p_id=r)
+            
+            # Extend the products_list with the results for the current p_id
+            products_list.extend(products_for_id)
+
+        # Serialize the entire list of products
+        serializer = ProductSerializer(products_list, many=True)
+
+        # Return the serialized data
+        return Response({'data': serializer.data, 'error' : False}, status=200)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+
 
 
